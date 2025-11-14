@@ -52,6 +52,7 @@ export function CreateTaskDialog({ projectId }: CreateTaskDialogProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects/stats"] });
       toast({
         title: "Task created",
         description: "Your task has been created successfully.",

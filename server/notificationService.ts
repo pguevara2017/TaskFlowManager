@@ -52,6 +52,7 @@ export class NotificationService {
   private static instance: NotificationService;
   private workerPool: WorkerInfo[] = [];
   private jobQueue: { job: NotificationJob; resolve: () => void; reject: (error: Error) => void }[] = [];
+  private activeJobs: Map<Worker, { resolve: () => void; reject: (error: Error) => void }> = new Map();
 
   private constructor() {
     this.initializeWorkerPool();
@@ -76,6 +77,16 @@ export class NotificationService {
       worker.on("message", (message) => {
         if (message.ready) {
           return;
+        }
+        
+        const jobCallbacks = this.activeJobs.get(worker);
+        if (jobCallbacks) {
+          if (message.success) {
+            jobCallbacks.resolve();
+          } else {
+            jobCallbacks.reject(new Error(message.error || "Unknown worker error"));
+          }
+          this.activeJobs.delete(worker);
         }
         
         workerInfo.busy = false;
@@ -174,22 +185,13 @@ export class NotificationService {
     }
 
     availableWorker.busy = true;
+    this.activeJobs.set(availableWorker.worker, { resolve: queueItem.resolve, reject: queueItem.reject });
 
     try {
       availableWorker.worker.postMessage(queueItem.job);
-      
-      const timeout = setTimeout(() => {
-        availableWorker.busy = false;
-        queueItem.resolve();
-        this.processQueue();
-      }, 5000);
-
-      availableWorker.worker.once("message", () => {
-        clearTimeout(timeout);
-        queueItem.resolve();
-      });
     } catch (error) {
       console.error("Error sending message to worker:", error);
+      this.activeJobs.delete(availableWorker.worker);
       availableWorker.busy = false;
       queueItem.reject(error as Error);
       this.processQueue();

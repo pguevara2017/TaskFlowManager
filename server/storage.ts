@@ -1,6 +1,6 @@
 import { type Project, type InsertProject, type Task, type InsertTask, projects, tasks } from "@shared/schema";
 import { getDb } from "../db/index";
-import { eq, and, gte, lte, sql } from "drizzle-orm";
+import { eq, and, gte, lte, sql, inArray } from "drizzle-orm";
 
 export interface ProjectStats {
   totalTasks: number;
@@ -69,8 +69,8 @@ export class DbStorage implements IStorage {
   }
 
   async getProjectStatsBulk(projectIds?: string[]): Promise<Record<string, ProjectStats>> {
-    const allProjects = projectIds
-      ? await this.db.select().from(projects).where(sql`${projects.id} = ANY(${projectIds})`)
+    const allProjects = projectIds && projectIds.length > 0
+      ? await this.db.select().from(projects).where(inArray(projects.id, projectIds))
       : await this.db.select().from(projects);
     
     const allTasks = await this.db.select().from(tasks);

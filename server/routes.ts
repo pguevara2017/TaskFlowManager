@@ -19,6 +19,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get batched project statistics (must be before /:id route)
+  app.get("/api/projects/stats", async (req, res) => {
+    try {
+      const projectIds = req.query.ids ? (req.query.ids as string).split(',') : undefined;
+      const stats = await storage.getProjectStatsBulk(projectIds);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching project stats:", error);
+      res.status(500).json({ error: "Failed to fetch project statistics" });
+    }
+  });
+
+  // Get project statistics for single project (must be before /:id route)
+  app.get("/api/projects/:id/stats", async (req, res) => {
+    try {
+      const tasks = await storage.getTasks({ projectId: req.params.id });
+      
+      const stats = {
+        totalTasks: tasks.length,
+        completedTasks: tasks.filter((t: any) => t.status === "COMPLETED").length,
+        inProgressTasks: tasks.filter((t: any) => t.status === "IN_PROGRESS").length,
+        pendingTasks: tasks.filter((t: any) => t.status === "PENDING").length,
+      };
+
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching project stats:", error);
+      res.status(500).json({ error: "Failed to fetch project statistics" });
+    }
+  });
+
   // Get single project
   app.get("/api/projects/:id", async (req, res) => {
     try {
@@ -270,37 +301,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting task:", error);
       res.status(500).json({ error: "Failed to delete task" });
-    }
-  });
-
-  // Get batched project statistics
-  app.get("/api/projects/stats", async (req, res) => {
-    try {
-      const projectIds = req.query.ids ? (req.query.ids as string).split(',') : undefined;
-      const stats = await storage.getProjectStatsBulk(projectIds);
-      res.json(stats);
-    } catch (error) {
-      console.error("Error fetching project stats:", error);
-      res.status(500).json({ error: "Failed to fetch project statistics" });
-    }
-  });
-
-  // Get project statistics
-  app.get("/api/projects/:id/stats", async (req, res) => {
-    try {
-      const tasks = await storage.getTasks({ projectId: req.params.id });
-      
-      const stats = {
-        totalTasks: tasks.length,
-        completedTasks: tasks.filter((t: any) => t.status === "COMPLETED").length,
-        inProgressTasks: tasks.filter((t: any) => t.status === "IN_PROGRESS").length,
-        pendingTasks: tasks.filter((t: any) => t.status === "PENDING").length,
-      };
-
-      res.json(stats);
-    } catch (error) {
-      console.error("Error fetching project stats:", error);
-      res.status(500).json({ error: "Failed to fetch project statistics" });
     }
   });
 
