@@ -4,83 +4,56 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchProjects, fetchProjectStatsBulk } from "@/lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function Projects() {
   const [searchQuery, setSearchQuery] = useState("");
-  
-  const [projects] = useState([
-    {
-      id: '1',
-      name: 'Website Redesign',
-      description: 'Complete overhaul of company website with new branding and modern features',
-      color: '#3B82F6',
-      totalTasks: 12,
-      completedTasks: 5,
-      inProgressTasks: 4,
-      pendingTasks: 3,
-    },
-    {
-      id: '2',
-      name: 'Mobile App Development',
-      description: 'Build iOS and Android mobile applications for customer engagement',
-      color: '#8B5CF6',
-      totalTasks: 18,
-      completedTasks: 6,
-      inProgressTasks: 8,
-      pendingTasks: 4,
-    },
-    {
-      id: '3',
-      name: 'API Integration',
-      description: 'Integrate third-party payment and analytics APIs',
-      color: '#10B981',
-      totalTasks: 8,
-      completedTasks: 7,
-      inProgressTasks: 1,
-      pendingTasks: 0,
-    },
-    {
-      id: '4',
-      name: 'Database Migration',
-      description: 'Migrate legacy database to new cloud infrastructure',
-      color: '#F59E0B',
-      totalTasks: 6,
-      completedTasks: 2,
-      inProgressTasks: 3,
-      pendingTasks: 1,
-    },
-    {
-      id: '5',
-      name: 'Marketing Campaign',
-      description: 'Q4 digital marketing campaign across social media platforms',
-      color: '#EC4899',
-      totalTasks: 15,
-      completedTasks: 10,
-      inProgressTasks: 3,
-      pendingTasks: 2,
-    },
-    {
-      id: '6',
-      name: 'Customer Portal',
-      description: 'Self-service portal for customers to manage their accounts',
-      color: '#06B6D4',
-      totalTasks: 20,
-      completedTasks: 8,
-      inProgressTasks: 7,
-      pendingTasks: 5,
-    },
-  ]);
 
-  const filteredProjects = projects.filter((project) =>
-    project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    project.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  const { data: projects = [], isLoading: projectsLoading } = useQuery({
+    queryKey: ["/api/projects"],
+    queryFn: () => fetchProjects(),
+  });
+
+  const projectIds = projects.map(p => p.id);
+  
+  const { data: statsMap = {}, isLoading: statsLoading } = useQuery({
+    queryKey: ["/api/projects/stats", projectIds],
+    queryFn: () => fetchProjectStatsBulk(projectIds),
+    enabled: projects.length > 0,
+  });
+
+  const projectsWithStats = projects.map((project) => {
+    const stats = statsMap[project.id] || {
+      totalTasks: 0,
+      completedTasks: 0,
+      inProgressTasks: 0,
+      pendingTasks: 0,
+    };
+    return {
+      ...project,
+      description: project.description ?? undefined,
+      ...stats,
+    };
+  });
+
+  const isLoading = projectsLoading || statsLoading;
+
+  const filteredProjects = projectsWithStats.filter(
+    (project) =>
+      project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-semibold">Projects</h1>
+          <h1 className="text-3xl font-semibold" data-testid="text-projects-title">
+            Projects
+          </h1>
           <p className="text-muted-foreground mt-1">
             Manage and track all your projects
           </p>
@@ -102,19 +75,29 @@ export default function Projects() {
         />
       </div>
 
-      {filteredProjects.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">No projects found</p>
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Skeleton key={i} className="h-48 w-full" />
+          ))}
         </div>
+      ) : filteredProjects.length === 0 ? (
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-center text-muted-foreground">
+              {searchQuery ? "No projects found matching your search" : "No projects yet. Create your first project to get started."}
+            </p>
+          </CardContent>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map((project) => (
             <ProjectCard
               key={project.id}
               {...project}
-              onEdit={() => console.log('Edit project', project.id)}
-              onDelete={() => console.log('Delete project', project.id)}
-              onClick={() => console.log('View project', project.id)}
+              onEdit={() => console.log("Edit project", project.id)}
+              onDelete={() => console.log("Delete project", project.id)}
+              onClick={() => console.log("View project", project.id)}
             />
           ))}
         </div>

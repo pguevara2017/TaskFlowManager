@@ -6,6 +6,10 @@ import { CreateTaskDialog } from "@/components/CreateTaskDialog";
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, List } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQuery } from "@tanstack/react-query";
+import { fetchProjects, fetchTasks } from "@/lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function Tasks() {
   const [view, setView] = useState<"grid" | "list">("grid");
@@ -16,90 +20,57 @@ export default function Tasks() {
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>("dueDate");
 
-  const projects = [
-    { id: '1', name: 'Website Redesign' },
-    { id: '2', name: 'Mobile App' },
-    { id: '3', name: 'API Integration' },
-  ];
-
-  const [tasks] = useState([
-    {
-      id: '1',
-      name: 'Design homepage mockups',
-      description: 'Create high-fidelity mockups for the new homepage design',
-      priority: 2,
-      dueDate: new Date(2024, 11, 15),
-      assignee: 'Sarah Johnson',
-      status: 'IN_PROGRESS' as const,
-      projectId: '1',
-    },
-    {
-      id: '2',
-      name: 'Setup database schema',
-      description: 'Define and implement the database schema',
-      priority: 1,
-      dueDate: new Date(2024, 11, 10),
-      assignee: 'Mike Chen',
-      status: 'COMPLETED' as const,
-      projectId: '1',
-    },
-    {
-      id: '3',
-      name: 'Write API documentation',
-      description: 'Document all REST API endpoints',
-      priority: 4,
-      dueDate: new Date(2024, 11, 25),
-      assignee: 'Emma Wilson',
-      status: 'PENDING' as const,
-      projectId: '2',
-    },
-    {
-      id: '4',
-      name: 'Implement authentication flow',
-      description: 'Build JWT-based authentication',
-      priority: 1,
-      dueDate: new Date(2024, 11, 18),
-      assignee: 'David Lee',
-      status: 'IN_PROGRESS' as const,
-      projectId: '2',
-    },
-    {
-      id: '5',
-      name: 'Create user dashboard',
-      description: 'Design and implement user dashboard UI',
-      priority: 3,
-      dueDate: new Date(2024, 11, 22),
-      assignee: 'Lisa Anderson',
-      status: 'PENDING' as const,
-      projectId: '3',
-    },
-    {
-      id: '6',
-      name: 'Setup CI/CD pipeline',
-      description: 'Configure automated testing and deployment',
-      priority: 2,
-      dueDate: new Date(2024, 11, 12),
-      assignee: 'Tom Brown',
-      status: 'IN_PROGRESS' as const,
-      projectId: '3',
-    },
-  ]);
-
-  const filteredTasks = tasks.filter((task) => {
-    const matchesSearch = task.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesProject = selectedProject === "all" || task.projectId === selectedProject;
-    const matchesStatus = selectedStatus === "all" || task.status === selectedStatus;
-    const matchesPriority = selectedPriority === "all" || task.priority.toString() === selectedPriority;
-    
-    return matchesSearch && matchesProject && matchesStatus && matchesPriority;
+  const { data: projects = [], isLoading: projectsLoading } = useQuery({
+    queryKey: ["/api/projects"],
+    queryFn: () => fetchProjects(),
   });
+
+  const { data: tasks = [], isLoading: tasksLoading } = useQuery({
+    queryKey: [
+      "/api/tasks",
+      {
+        projectId: selectedProject === "all" ? undefined : selectedProject,
+        status: selectedStatus === "all" ? undefined : selectedStatus,
+        priority: selectedPriority === "all" ? undefined : parseInt(selectedPriority),
+        sortBy: sortBy === "dueDate" ? "dueDate" : sortBy === "priority" ? "priority" : "name",
+        sortOrder: "asc",
+      },
+    ],
+    queryFn: () =>
+      fetchTasks({
+        projectId: selectedProject === "all" ? undefined : selectedProject,
+        status: selectedStatus === "all" ? undefined : selectedStatus,
+        priority: selectedPriority === "all" ? undefined : parseInt(selectedPriority),
+        sortBy: sortBy === "dueDate" ? "dueDate" : sortBy === "priority" ? "priority" : "name",
+        sortOrder: "asc",
+      }),
+  });
+
+  const projectOptions = projects.map((p) => ({ id: p.id, name: p.name }));
+
+  const filteredTasks = tasks
+    .filter((task) => {
+      const matchesSearch =
+        task.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        task.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesSearch;
+    })
+    .map((task) => ({
+      ...task,
+      description: task.description ?? undefined,
+      dueDate: new Date(task.dueDate),
+      status: task.status as "PENDING" | "IN_PROGRESS" | "COMPLETED",
+    }));
+
+  const isLoading = tasksLoading || projectsLoading;
 
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-semibold">Tasks</h1>
+          <h1 className="text-3xl font-semibold" data-testid="text-tasks-title">
+            Tasks
+          </h1>
           <p className="text-muted-foreground mt-1">
             View and manage all your tasks
           </p>
@@ -124,26 +95,38 @@ export default function Tasks() {
         onSearchChange={setSearchQuery}
         selectedProject={selectedProject}
         onProjectChange={setSelectedProject}
-        projects={projects}
+        projects={projectOptions}
         selectedStatus={selectedStatus}
         onStatusChange={setSelectedStatus}
         selectedPriority={selectedPriority}
         onPriorityChange={setSelectedPriority}
       />
 
-      {filteredTasks.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">No tasks found</p>
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Skeleton key={i} className="h-48 w-full" />
+          ))}
         </div>
+      ) : filteredTasks.length === 0 ? (
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-center text-muted-foreground">
+              {searchQuery || selectedProject !== "all" || selectedStatus !== "all" || selectedPriority !== "all"
+                ? "No tasks found matching your filters"
+                : "No tasks yet. Create your first task to get started."}
+            </p>
+          </CardContent>
+        </Card>
       ) : view === "grid" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredTasks.map((task) => (
             <TaskCard
               key={task.id}
               {...task}
-              onEdit={() => console.log('Edit task', task.id)}
-              onDelete={() => console.log('Delete task', task.id)}
-              onClick={() => console.log('View task', task.id)}
+              onEdit={() => console.log("Edit task", task.id)}
+              onDelete={() => console.log("Delete task", task.id)}
+              onClick={() => console.log("View task", task.id)}
             />
           ))}
         </div>
@@ -152,23 +135,21 @@ export default function Tasks() {
           tasks={filteredTasks}
           selectedTasks={selectedTasks}
           onSelectTask={(id) => {
-            setSelectedTasks(prev =>
-              prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]
+            setSelectedTasks((prev) =>
+              prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
             );
           }}
           onSelectAll={() => {
             setSelectedTasks(
-              selectedTasks.length === filteredTasks.length
-                ? []
-                : filteredTasks.map(t => t.id)
+              selectedTasks.length === filteredTasks.length ? [] : filteredTasks.map((t) => t.id)
             );
           }}
           onSort={(field) => {
-            console.log('Sort by:', field);
+            console.log("Sort by:", field);
             setSortBy(field);
           }}
           sortBy={sortBy}
-          onTaskClick={(task) => console.log('Clicked task:', task)}
+          onTaskClick={(task) => console.log("Clicked task:", task)}
         />
       )}
     </div>

@@ -2,6 +2,13 @@ import { type Project, type InsertProject, type Task, type InsertTask, projects,
 import { getDb } from "../db/index";
 import { eq, and, gte, lte, sql } from "drizzle-orm";
 
+export interface ProjectStats {
+  totalTasks: number;
+  completedTasks: number;
+  inProgressTasks: number;
+  pendingTasks: number;
+}
+
 export interface IStorage {
   // Project methods
   getProjects(): Promise<Project[]>;
@@ -9,6 +16,7 @@ export interface IStorage {
   createProject(project: InsertProject): Promise<Project>;
   updateProject(id: string, project: Partial<InsertProject>): Promise<Project | undefined>;
   deleteProject(id: string): Promise<boolean>;
+  getProjectStatsBulk(projectIds?: string[]): Promise<Record<string, ProjectStats>>;
 
   // Task methods
   getTasks(filters?: {
@@ -58,6 +66,28 @@ export class DbStorage implements IStorage {
   async deleteProject(id: string): Promise<boolean> {
     const result = await this.db.delete(projects).where(eq(projects.id, id)).returning();
     return result.length > 0;
+  }
+
+  async getProjectStatsBulk(projectIds?: string[]): Promise<Record<string, ProjectStats>> {
+    const allProjects = projectIds
+      ? await this.db.select().from(projects).where(sql`${projects.id} = ANY(${projectIds})`)
+      : await this.db.select().from(projects);
+    
+    const allTasks = await this.db.select().from(tasks);
+
+    const stats: Record<string, ProjectStats> = {};
+    
+    for (const project of allProjects) {
+      const projectTasks = allTasks.filter(t => t.projectId === project.id);
+      stats[project.id] = {
+        totalTasks: projectTasks.length,
+        completedTasks: projectTasks.filter(t => t.status === "COMPLETED").length,
+        inProgressTasks: projectTasks.filter(t => t.status === "IN_PROGRESS").length,
+        pendingTasks: projectTasks.filter(t => t.status === "PENDING").length,
+      };
+    }
+
+    return stats;
   }
 
   async getTasks(filters?: {

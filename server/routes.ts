@@ -273,6 +273,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get batched project statistics
+  app.get("/api/projects/stats", async (req, res) => {
+    try {
+      const projectIds = req.query.ids ? (req.query.ids as string).split(',') : undefined;
+      const stats = await storage.getProjectStatsBulk(projectIds);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching project stats:", error);
+      res.status(500).json({ error: "Failed to fetch project statistics" });
+    }
+  });
+
   // Get project statistics
   app.get("/api/projects/:id/stats", async (req, res) => {
     try {

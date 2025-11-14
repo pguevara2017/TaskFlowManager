@@ -22,13 +22,16 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { createTask, fetchProjects } from "@/lib/api";
+import { queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface CreateTaskDialogProps {
   projectId?: string;
-  onCreateTask?: (task: any) => void;
 }
 
-export function CreateTaskDialog({ projectId, onCreateTask }: CreateTaskDialogProps) {
+export function CreateTaskDialog({ projectId }: CreateTaskDialogProps) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -36,26 +39,75 @@ export function CreateTaskDialog({ projectId, onCreateTask }: CreateTaskDialogPr
   const [assignee, setAssignee] = useState("");
   const [status, setStatus] = useState("PENDING");
   const [dueDate, setDueDate] = useState<Date>();
+  const [selectedProjectId, setSelectedProjectId] = useState(projectId || "");
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Creating task:", { name, description, priority, assignee, status, dueDate, projectId });
-    onCreateTask?.({
-      name,
-      description,
-      priority: parseInt(priority),
-      assignee,
-      status,
-      dueDate,
-      projectId,
-    });
-    setOpen(false);
+  const { data: projects = [], isLoading: projectsLoading } = useQuery({
+    queryKey: ["/api/projects"],
+    queryFn: () => fetchProjects(),
+  });
+
+  const createTaskMutation = useMutation({
+    mutationFn: createTask,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      toast({
+        title: "Task created",
+        description: "Your task has been created successfully.",
+      });
+      resetForm();
+      setOpen(false);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create task. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const resetForm = () => {
     setName("");
     setDescription("");
     setPriority("3");
     setAssignee("");
     setStatus("PENDING");
     setDueDate(undefined);
+    if (!projectId) setSelectedProjectId("");
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!dueDate) {
+      toast({
+        title: "Error",
+        description: "Please select a due date.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!selectedProjectId) {
+      toast({
+        title: "Error",
+        description: "Please select a project.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createTaskMutation.mutate({
+      name,
+      description: description || undefined,
+      priority: parseInt(priority),
+      assignee,
+      status: status as "PENDING" | "IN_PROGRESS" | "COMPLETED",
+      dueDate: dueDate.toISOString(),
+      projectId: selectedProjectId,
+    });
   };
 
   return (
@@ -93,6 +145,27 @@ export function CreateTaskDialog({ projectId, onCreateTask }: CreateTaskDialogPr
               rows={3}
               data-testid="input-task-description"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="project">Project *</Label>
+            <Select
+              value={selectedProjectId}
+              onValueChange={setSelectedProjectId}
+              required
+              disabled={!!projectId}
+            >
+              <SelectTrigger id="project" data-testid="select-project">
+                <SelectValue placeholder="Select project" />
+              </SelectTrigger>
+              <SelectContent>
+                {projects.map((project) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -174,8 +247,8 @@ export function CreateTaskDialog({ projectId, onCreateTask }: CreateTaskDialogPr
             >
               Cancel
             </Button>
-            <Button type="submit" data-testid="button-submit">
-              Create Task
+            <Button type="submit" disabled={createTaskMutation.isPending || projectsLoading} data-testid="button-submit">
+              {createTaskMutation.isPending ? "Creating..." : projectsLoading ? "Loading..." : "Create Task"}
             </Button>
           </div>
         </form>

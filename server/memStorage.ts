@@ -1,6 +1,6 @@
 import { type Project, type InsertProject, type Task, type InsertTask } from "@shared/schema";
 import { randomUUID } from "crypto";
-import { IStorage } from "./storage";
+import { IStorage, ProjectStats } from "./storage";
 
 export class MemStorage implements IStorage {
   private projects: Map<string, Project>;
@@ -45,6 +45,29 @@ export class MemStorage implements IStorage {
 
   async deleteProject(id: string): Promise<boolean> {
     return this.projects.delete(id);
+  }
+
+  async getProjectStatsBulk(projectIds?: string[]): Promise<Record<string, ProjectStats>> {
+    const allProjects = Array.from(this.projects.values());
+    const projectsToProcess = projectIds
+      ? allProjects.filter(p => projectIds.includes(p.id))
+      : allProjects;
+    
+    const allTasks = Array.from(this.tasks.values());
+
+    const stats: Record<string, ProjectStats> = {};
+    
+    for (const project of projectsToProcess) {
+      const projectTasks = allTasks.filter(t => t.projectId === project.id);
+      stats[project.id] = {
+        totalTasks: projectTasks.length,
+        completedTasks: projectTasks.filter(t => t.status === "COMPLETED").length,
+        inProgressTasks: projectTasks.filter(t => t.status === "IN_PROGRESS").length,
+        pendingTasks: projectTasks.filter(t => t.status === "PENDING").length,
+      };
+    }
+
+    return stats;
   }
 
   async getTasks(filters?: {
