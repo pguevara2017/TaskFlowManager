@@ -4,12 +4,12 @@ import com.taskflow.model.Task;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -28,11 +28,21 @@ public class NotificationService {
     public void shutdown() {
         if (executorService != null) {
             executorService.shutdown();
-            log.info("Email notification service shut down");
+            try {
+                if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) {
+                    executorService.shutdownNow();
+                    log.warn("Email notification service forced shutdown after timeout");
+                } else {
+                    log.info("Email notification service shut down gracefully");
+                }
+            } catch (InterruptedException e) {
+                executorService.shutdownNow();
+                Thread.currentThread().interrupt();
+                log.error("Email notification service shutdown interrupted");
+            }
         }
     }
     
-    @Async
     public void sendTaskCreatedNotification(Task task) {
         executorService.submit(() -> {
             try {
@@ -55,7 +65,6 @@ public class NotificationService {
         });
     }
     
-    @Async
     public void sendTaskUpdatedNotification(Task task) {
         executorService.submit(() -> {
             try {

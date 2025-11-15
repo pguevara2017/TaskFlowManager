@@ -2,7 +2,9 @@
 
 ## Overview
 
-TaskFlow is a full-stack project management application designed for teams to schedule, track, and manage tasks across multiple projects. The application features a modern React frontend with Material Design principles (via shadcn/ui components), an Express.js backend, and PostgreSQL database integration through Neon serverless. Users can organize work by projects, assign tasks with priorities, track status changes, and view tasks in both grid/list and calendar formats.
+TaskFlow is a full-stack project management application designed for teams to schedule, track, and manage tasks across multiple projects. The application features a modern React frontend with Material Design principles (via shadcn/ui components), a **Spring Boot backend (Java)**, and PostgreSQL database integration through Neon serverless. Users can organize work by projects, assign tasks with optional due dates, set priorities (1-5), track status changes, and view tasks in both grid/list and calendar formats.
+
+**Recent Migration:** Backend migrated from Node.js/Express to Java Spring Boot with Maven for improved enterprise-grade architecture, type safety, and performance.
 
 ## User Preferences
 
@@ -42,64 +44,100 @@ Preferred communication style: Simple, everyday language.
 ### Backend Architecture
 
 **Technology Stack:**
-- Express.js server with TypeScript
-- Drizzle ORM for database operations
-- Neon serverless PostgreSQL
-- Zod for request validation
-- Worker threads for background notification processing
+- **Spring Boot 3.2.0** (Java 21) REST API framework
+- **Spring Data JPA** with Hibernate for ORM
+- **Spring Web** for RESTful controllers
+- **Neon serverless PostgreSQL** via JDBC
+- **Jakarta Validation** for request validation
+- **ExecutorService** for background notification processing
+- **HikariCP** for database connection pooling
+- **Lombok** for reducing boilerplate code
+- **SLF4J** for logging
 
 **API Design:**
 - RESTful endpoints under `/api` prefix
 - Resource-based routing (projects, tasks)
 - Standard HTTP methods (GET, POST, PATCH, DELETE)
-- Consistent error responses with appropriate status codes
-- Request validation using Zod schemas derived from database schema
+- Consistent JSON responses with appropriate HTTP status codes
+- Request validation using `@Valid` annotations with Jakarta Validation
+- Two DTO patterns:
+  - `CreateTaskRequest`: For POST (required fields validated)
+  - `UpdateTaskRequest`: For PATCH (all fields optional for partial updates)
 
-**Storage Abstraction:**
-- `IStorage` interface defines contract for data operations
-- `DbStorage` implementation for PostgreSQL via Drizzle
-- `MemStorage` implementation for in-memory testing/development
-- Singleton pattern for database connection management
+**Service Layer:**
+- `TaskService`: Business logic for CRUD operations, filtering, sorting
+- `NotificationService`: Async email notifications via bounded thread pool
+- `ProjectService`: Project management operations
+- Service methods annotated with `@Transactional` for data consistency
+- In-memory filtering and sorting (moved from JPQL to avoid PostgreSQL type inference issues)
 
 **Background Processing:**
-- Notification service using Node.js worker threads
-- Worker pool pattern (4 workers) for parallel processing
-- Email notifications simulated via console logging
-- Event-driven architecture for task creation/updates
+- NotificationService uses `ExecutorService` with fixed thread pool (4 workers)
+- Non-blocking notification sending (requests return immediately)
+- Graceful shutdown with 10-second timeout via `@PreDestroy`
+- Email notifications simulated via console logging (SLF4J)
+- Null-safe date formatting ("No due date" for tasks without due dates)
 
 **Database Schema:**
-- Projects table: id, name, description, color
-- Tasks table: id, projectId, name, description, priority (1-5), dueDate, assignee, status (PENDING/IN_PROGRESS/COMPLETED), timestamps
+- **Projects table**: id (varchar UUID), name, description, color
+- **Tasks table**: id (varchar UUID), projectId, name, description, priority (1-5), dueDate (nullable), assignee, status (PENDING/IN_PROGRESS/COMPLETED), createdAt, updatedAt
 - UUID primary keys generated via PostgreSQL `gen_random_uuid()`
-- Foreign key relationship from tasks to projects (not enforced in schema but handled in application logic)
+- Timestamps auto-managed via JPA `@PrePersist` and `@PreUpdate`
+- **Optional Due Dates**: Tasks can be created with or without due dates (nullable column)
+
+**Key Design Decisions:**
+- Date filtering moved from JPQL to service layer (avoids PostgreSQL timestamp type inference issues)
+- Empty string ("") used as marker to clear due dates in PATCH requests (Java can't distinguish JSON null vs missing field)
+- UpdateTaskRequest separates partial update concerns from CreateTaskRequest validation
+- Separate DTOs prevent validation conflicts between POST (required fields) and PATCH (optional fields)
 
 ### Build and Development
 
 **Development Setup:**
-- Vite dev server with HMR for frontend
-- Express middleware mode integration with Vite
-- TSX for running TypeScript server code in development
-- Source maps for debugging
+- Vite dev server with HMR for frontend on port 5000
+- Spring Boot runs on port 8080 with hot reload via Maven
+- Node.js orchestrator (`server/index.ts`) manages both processes:
+  - Starts Spring Boot backend (`mvn spring-boot:run`)
+  - Starts Vite frontend dev server
+  - Provides unified development workflow
+- Source maps for frontend debugging
+- SLF4J logging for backend debugging
 
 **Production Build:**
-- Vite builds client to `dist/public`
-- esbuild bundles server to `dist/index.js`
-- ESM module format throughout
-- Static file serving from built public directory
+- Frontend: Vite builds client to `dist/public`
+- Backend: Maven packages Spring Boot executable JAR
+- Spring Boot serves static frontend assets from classpath
+- Single deployable JAR contains both frontend and backend
+
+**Maven Configuration (pom.xml):**
+- Spring Boot 3.2.0 with Java 21
+- Dependencies: Spring Web, Spring Data JPA, PostgreSQL driver, Lombok, validation
+- Maven plugins: spring-boot-maven-plugin, maven-compiler-plugin
+- Build produces executable JAR with embedded Tomcat
 
 **TypeScript Configuration:**
-- Strict mode enabled for type safety
-- Path mapping for clean imports
+- Frontend: Strict mode enabled for type safety
+- Path mapping for clean imports (@/, @shared/, @assets/)
 - Incremental compilation for faster rebuilds
-- Separate tsconfig for client/server/shared code
+- Separate tsconfig for client/shared code
 
 ## External Dependencies
 
+### Backend (Spring Boot)
+- **Spring Boot 3.2.0**: Enterprise Java framework for building REST APIs
+- **Spring Data JPA**: Data access layer with Hibernate ORM
+- **PostgreSQL JDBC Driver**: Database connectivity
+- **Neon Serverless PostgreSQL**: Cloud-hosted PostgreSQL database via JDBC connection
+- **HikariCP**: High-performance JDBC connection pooling
+- **Lombok**: Annotation-based code generation (getters, setters, constructors)
+- **Jakarta Validation**: Bean validation for request DTOs
+- **SLF4J**: Logging facade
+- Database URL provided via `DATABASE_URL` environment variable
+
 ### Database
 - **Neon Serverless PostgreSQL**: Cloud-hosted PostgreSQL database
-- **Drizzle ORM**: TypeScript ORM for database queries and migrations
-- Connection via `@neondatabase/serverless` driver
-- Database URL provided via `DATABASE_URL` environment variable
+- Connection via JDBC (`org.postgresql:postgresql` driver)
+- Database schema managed via JPA entity annotations
 
 ### UI Component Libraries
 - **Radix UI**: Headless component primitives (40+ components including dialogs, dropdowns, popovers, etc.)
@@ -125,6 +163,8 @@ Preferred communication style: Simple, everyday language.
 - **PostCSS**: CSS processing with autoprefixer
 
 ### Runtime
-- Node.js worker threads for background processing
-- Express session management (connect-pg-simple for PostgreSQL session store)
-- HTTP server creation via Node.js built-in http module
+- **Backend**: Spring Boot with embedded Tomcat server (Java 21)
+- **Frontend Dev**: Vite dev server (Node.js)
+- **Orchestrator**: Node.js script manages both Spring Boot and Vite processes
+- **Background Processing**: Java ExecutorService with fixed thread pool (4 workers)
+- **Database Pooling**: HikariCP for connection management

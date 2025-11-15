@@ -16,7 +16,7 @@ export const tasks = pgTable("tasks", {
   name: text("name").notNull(),
   description: text("description"),
   priority: integer("priority").notNull().default(3),
-  dueDate: timestamp("due_date").notNull(),
+  dueDate: timestamp("due_date"),
   assignee: text("assignee").notNull(),
   status: text("status").notNull().default("PENDING"),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
@@ -34,7 +34,7 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
 }).extend({
   priority: z.number().min(1).max(5),
   status: z.enum(["PENDING", "IN_PROGRESS", "COMPLETED"]),
-  dueDate: z.coerce.date(),
+  dueDate: z.string().optional(),
 });
 
 export type InsertProject = z.infer<typeof insertProjectSchema>;
