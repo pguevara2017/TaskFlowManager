@@ -21,15 +21,11 @@ public interface TaskRepository extends JpaRepository<Task, String> {
     @Query("SELECT t FROM Task t WHERE " +
            "(:projectId IS NULL OR t.projectId = :projectId) AND " +
            "(:status IS NULL OR t.status = :status) AND " +
-           "(:priority IS NULL OR t.priority = :priority) AND " +
-           "(CAST(:startDate AS timestamp) IS NULL OR t.dueDate >= :startDate) AND " +
-           "(CAST(:endDate AS timestamp) IS NULL OR t.dueDate <= :endDate)")
+           "(:priority IS NULL OR t.priority = :priority)")
     List<Task> findTasksWithFilters(
         @Param("projectId") String projectId,
         @Param("status") String status,
-        @Param("priority") Integer priority,
-        @Param("startDate") LocalDateTime startDate,
-        @Param("endDate") LocalDateTime endDate
+        @Param("priority") Integer priority
     );
     
     @Query("SELECT COUNT(t) FROM Task t WHERE t.projectId = :projectId")

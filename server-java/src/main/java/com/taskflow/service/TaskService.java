@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,9 +35,12 @@ public class TaskService {
         String sort = sortBy != null ? sortBy : "dueDate";
         String order = sortOrder != null ? sortOrder : "asc";
         
-        List<Task> tasks = taskRepository.findTasksWithFilters(
-            projectId, status, priority, startDate, endDate
-        );
+        List<Task> tasks = taskRepository.findTasksWithFilters(projectId, status, priority);
+        
+        tasks = new ArrayList<>(tasks.stream()
+            .filter(task -> startDate == null || task.getDueDate() == null || !task.getDueDate().isBefore(startDate))
+            .filter(task -> endDate == null || task.getDueDate() == null || !task.getDueDate().isAfter(endDate))
+            .toList());
         
         tasks.sort((t1, t2) -> {
             int comparison = 0;
