@@ -22,23 +22,14 @@ public interface TaskRepository extends JpaRepository<Task, String> {
            "(:projectId IS NULL OR t.projectId = :projectId) AND " +
            "(:status IS NULL OR t.status = :status) AND " +
            "(:priority IS NULL OR t.priority = :priority) AND " +
-           "(:startDate IS NULL OR t.dueDate >= :startDate) AND " +
-           "(:endDate IS NULL OR t.dueDate <= :endDate) " +
-           "ORDER BY " +
-           "CASE WHEN :sortBy = 'priority' AND :sortOrder = 'asc' THEN t.priority END ASC, " +
-           "CASE WHEN :sortBy = 'priority' AND :sortOrder = 'desc' THEN t.priority END DESC, " +
-           "CASE WHEN :sortBy = 'dueDate' AND :sortOrder = 'asc' THEN t.dueDate END ASC, " +
-           "CASE WHEN :sortBy = 'dueDate' AND :sortOrder = 'desc' THEN t.dueDate END DESC, " +
-           "CASE WHEN :sortBy = 'name' AND :sortOrder = 'asc' THEN t.name END ASC, " +
-           "CASE WHEN :sortBy = 'name' AND :sortOrder = 'desc' THEN t.name END DESC")
+           "(CAST(:startDate AS timestamp) IS NULL OR t.dueDate >= :startDate) AND " +
+           "(CAST(:endDate AS timestamp) IS NULL OR t.dueDate <= :endDate)")
     List<Task> findTasksWithFilters(
         @Param("projectId") String projectId,
         @Param("status") String status,
         @Param("priority") Integer priority,
         @Param("startDate") LocalDateTime startDate,
-        @Param("endDate") LocalDateTime endDate,
-        @Param("sortBy") String sortBy,
-        @Param("sortOrder") String sortOrder
+        @Param("endDate") LocalDateTime endDate
     );
     
     @Query("SELECT COUNT(t) FROM Task t WHERE t.projectId = :projectId")

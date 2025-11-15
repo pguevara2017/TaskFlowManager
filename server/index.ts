@@ -1,81 +1,87 @@
-import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+import { spawn } from 'child_process';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
-const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const projectRoot = join(__dirname, '..');
 
-declare module 'http' {
-  interface IncomingMessage {
-    rawBody: unknown
-  }
-}
-app.use(express.json({
-  verify: (req, _res, buf) => {
-    req.rawBody = buf;
-  }
-}));
-app.use(express.urlencoded({ extended: false }));
+console.log('🚀 Starting TaskFlow with Spring Boot backend...\n');
 
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
-    }
-  });
-
-  next();
+const springBoot = spawn('mvn', ['spring-boot:run'], {
+  cwd: join(projectRoot, 'server-java'),
+  stdio: ['inherit', 'pipe', 'pipe'],
+  shell: true,
+  env: { ...process.env }
 });
 
-(async () => {
-  const server = await registerRoutes(app);
+springBoot.stdout?.on('data', (data) => {
+  process.stdout.write(`[spring-boot] ${data}`);
+});
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+springBoot.stderr?.on('data', (data) => {
+  process.stderr.write(`[spring-boot] ${data}`);
+});
 
-    res.status(status).json({ message });
-    throw err;
-  });
+console.log('⚡ Starting Vite dev server for frontend...\n');
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
+const vite = spawn('npx', ['vite', '--port', '5000', '--host', '0.0.0.0'], {
+  cwd: projectRoot,
+  stdio: ['inherit', 'pipe', 'pipe'],
+  shell: true,
+  env: {
+    ...process.env,
+    VITE_API_BASE_URL: 'http://localhost:8080'
   }
+});
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
-})();
+vite.stdout?.on('data', (data) => {
+  process.stdout.write(`[vite] ${data}`);
+});
+
+vite.stderr?.on('data', (data) => {
+  process.stderr.write(`[vite] ${data}`);
+});
+
+springBoot.on('error', (err) => {
+  console.error('❌ Failed to start Spring Boot:', err);
+  vite.kill('SIGTERM');
+  process.exit(1);
+});
+
+vite.on('error', (err) => {
+  console.error('❌ Failed to start Vite:', err);
+  springBoot.kill('SIGTERM');
+  process.exit(1);
+});
+
+springBoot.on('exit', (code) => {
+  console.log(`\n⏹️  Spring Boot exited with code ${code}`);
+  vite.kill('SIGTERM');
+  setTimeout(() => process.exit(code || 0), 1000);
+});
+
+vite.on('exit', (code) => {
+  console.log(`\n⏹️  Vite exited with code ${code}`);
+  springBoot.kill('SIGTERM');
+  setTimeout(() => process.exit(code || 0), 1000);
+});
+
+const shutdown = () => {
+  console.log('\n⏹️  Shutting down services...');
+  springBoot.kill('SIGTERM');
+  vite.kill('SIGTERM');
+  
+  setTimeout(() => {
+    springBoot.kill('SIGKILL');
+    vite.kill('SIGKILL');
+    process.exit(0);
+  }, 5000);
+};
+
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
+
+console.log('\n✓ Dev environment starting...');
+console.log('  - Spring Boot API will be on http://localhost:8080');
+console.log('  - Vite frontend will be on http://localhost:5000\n');

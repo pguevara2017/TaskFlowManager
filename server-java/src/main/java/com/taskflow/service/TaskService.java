@@ -35,8 +35,30 @@ public class TaskService {
         String order = sortOrder != null ? sortOrder : "asc";
         
         List<Task> tasks = taskRepository.findTasksWithFilters(
-            projectId, status, priority, startDate, endDate, sort, order
+            projectId, status, priority, startDate, endDate
         );
+        
+        tasks.sort((t1, t2) -> {
+            int comparison = 0;
+            switch (sort) {
+                case "priority":
+                    Integer p1 = t1.getPriority() != null ? t1.getPriority() : Integer.MAX_VALUE;
+                    Integer p2 = t2.getPriority() != null ? t2.getPriority() : Integer.MAX_VALUE;
+                    comparison = p1.compareTo(p2);
+                    break;
+                case "dueDate":
+                    LocalDateTime d1 = t1.getDueDate() != null ? t1.getDueDate() : LocalDateTime.MAX;
+                    LocalDateTime d2 = t2.getDueDate() != null ? t2.getDueDate() : LocalDateTime.MAX;
+                    comparison = d1.compareTo(d2);
+                    break;
+                case "name":
+                    String n1 = t1.getName() != null ? t1.getName() : "";
+                    String n2 = t2.getName() != null ? t2.getName() : "";
+                    comparison = n1.compareTo(n2);
+                    break;
+            }
+            return "desc".equalsIgnoreCase(order) ? -comparison : comparison;
+        });
         
         return new TasksResponse(tasks, tasks.size());
     }
