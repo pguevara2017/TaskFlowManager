@@ -1,6 +1,7 @@
 package com.taskflow.controller;
 
 import com.taskflow.dto.CreateTaskRequest;
+import com.taskflow.dto.UpdateTaskRequest;
 import com.taskflow.dto.TasksResponse;
 import com.taskflow.model.Task;
 import com.taskflow.service.TaskService;
@@ -53,7 +54,7 @@ public class TaskController {
     @PatchMapping("/{id}")
     public ResponseEntity<Task> updateTask(
             @PathVariable String id,
-            @RequestBody CreateTaskRequest request
+            @RequestBody UpdateTaskRequest request
     ) {
         return taskService.updateTask(id, request)
                 .map(ResponseEntity::ok)

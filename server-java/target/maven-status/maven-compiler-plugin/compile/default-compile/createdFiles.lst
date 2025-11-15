@@ -3,6 +3,7 @@ com/taskflow/model/Task.class
 com/taskflow/dto/ProjectStatsResponse.class
 com/taskflow/controller/TaskController.class
 com/taskflow/model/Project.class
+com/taskflow/dto/UpdateTaskRequest.class
 com/taskflow/service/NotificationService.class
 com/taskflow/dto/TasksResponse.class
 com/taskflow/controller/ProjectController.class

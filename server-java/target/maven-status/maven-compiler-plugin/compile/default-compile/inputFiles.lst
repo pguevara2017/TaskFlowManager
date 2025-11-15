@@ -13,4 +13,5 @@
 /home/runner/workspace/server-java/src/main/java/com/taskflow/config/DatabaseConfig.java
 /home/runner/workspace/server-java/src/main/java/com/taskflow/repository/ProjectRepository.java
 /home/runner/workspace/server-java/src/main/java/com/taskflow/dto/CreateTaskRequest.java
+/home/runner/workspace/server-java/src/main/java/com/taskflow/dto/UpdateTaskRequest.java
 /home/runner/workspace/server-java/src/main/java/com/taskflow/TaskFlowApplication.java

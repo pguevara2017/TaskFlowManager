@@ -81,15 +81,6 @@ export function CreateTaskDialog({ projectId }: CreateTaskDialogProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!dueDate) {
-      toast({
-        title: "Error",
-        description: "Please select a due date.",
-        variant: "destructive",
-      });
-      return;
-    }
 
     if (!selectedProjectId) {
       toast({
@@ -106,7 +97,7 @@ export function CreateTaskDialog({ projectId }: CreateTaskDialogProps) {
       priority: parseInt(priority),
       assignee,
       status: status as "PENDING" | "IN_PROGRESS" | "COMPLETED",
-      dueDate: dueDate.toISOString(),
+      dueDate: dueDate ? dueDate.toISOString() : undefined,
       projectId: selectedProjectId,
     });
   };
@@ -215,7 +206,7 @@ export function CreateTaskDialog({ projectId }: CreateTaskDialogProps) {
             </div>
 
             <div className="space-y-2">
-              <Label>Due Date *</Label>
+              <Label>Due Date (Optional)</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -224,7 +215,7 @@ export function CreateTaskDialog({ projectId }: CreateTaskDialogProps) {
                     data-testid="button-due-date"
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dueDate ? format(dueDate, "PPP") : <span>Pick a date</span>}
+                    {dueDate ? format(dueDate, "PPP") : <span className="text-muted-foreground">No due date</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
@@ -236,6 +227,18 @@ export function CreateTaskDialog({ projectId }: CreateTaskDialogProps) {
                   />
                 </PopoverContent>
               </Popover>
+              {dueDate && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setDueDate(undefined)}
+                  className="w-full"
+                  data-testid="button-clear-due-date"
+                >
+                  Clear due date
+                </Button>
+              )}
             </div>
           </div>
 

@@ -1,6 +1,7 @@
 package com.taskflow.service;
 
 import com.taskflow.dto.CreateTaskRequest;
+import com.taskflow.dto.UpdateTaskRequest;
 import com.taskflow.dto.TasksResponse;
 import com.taskflow.model.Task;
 import com.taskflow.repository.TaskRepository;
@@ -93,7 +94,7 @@ public class TaskService {
     }
     
     @Transactional
-    public Optional<Task> updateTask(String id, CreateTaskRequest request) {
+    public Optional<Task> updateTask(String id, UpdateTaskRequest request) {
         return taskRepository.findById(id).map(task -> {
             if (request.getProjectId() != null) {
                 task.setProjectId(request.getProjectId());
@@ -114,8 +115,12 @@ public class TaskService {
                 task.setStatus(request.getStatus());
             }
             if (request.getDueDate() != null) {
-                LocalDateTime dueDate = parseIsoDate(request.getDueDate());
-                task.setDueDate(dueDate);
+                if (request.getDueDate().trim().isEmpty()) {
+                    task.setDueDate(null);
+                } else {
+                    LocalDateTime dueDate = parseIsoDate(request.getDueDate());
+                    task.setDueDate(dueDate);
+                }
             }
             
             Task updatedTask = taskRepository.save(task);
