@@ -29,7 +29,7 @@ public class Task {
     @Column(name = "priority", nullable = false)
     private Integer priority = 3;
     
-    @Column(name = "due_date", nullable = false)
+    @Column(name = "due_date")
     private LocalDateTime dueDate;
     
     @Column(name = "assignee", nullable = false)

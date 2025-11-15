@@ -19,7 +19,6 @@ public class CreateTaskRequest {
     @Max(value = 5, message = "Priority must be between 1 and 5")
     private Integer priority;
     
-    @NotNull(message = "Due date is required")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     private String dueDate;
     

@@ -145,6 +145,9 @@ public class TaskService {
     }
     
     private LocalDateTime parseIsoDate(String dateString) {
+        if (dateString == null || dateString.trim().isEmpty()) {
+            return null;
+        }
         try {
             ZonedDateTime zonedDateTime = ZonedDateTime.parse(dateString, DateTimeFormatter.ISO_DATE_TIME);
             return zonedDateTime.toLocalDateTime();

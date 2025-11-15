@@ -36,13 +36,17 @@ public class NotificationService {
     public void sendTaskCreatedNotification(Task task) {
         executorService.submit(() -> {
             try {
+                String formattedDueDate = task.getDueDate() != null 
+                    ? task.getDueDate().format(DateTimeFormatter.ofPattern("MM/dd/yyyy"))
+                    : "No due date";
+                
                 log.info("\n=== EMAIL NOTIFICATION (Worker Thread) ===");
                 log.info("Type: TASK CREATED");
                 log.info("To: {}", task.getAssignee());
                 log.info("Subject: Task Assigned: {}", task.getName());
                 log.info("Task ID: {}", task.getId());
                 log.info("Priority: {}", task.getPriority());
-                log.info("Due Date: {}", task.getDueDate().format(DateTimeFormatter.ofPattern("MM/dd/yyyy")));
+                log.info("Due Date: {}", formattedDueDate);
                 log.info("Message: You have been assigned to the task \"{}\"", task.getName());
                 log.info("==========================================\n");
             } catch (Exception e) {
@@ -55,13 +59,17 @@ public class NotificationService {
     public void sendTaskUpdatedNotification(Task task) {
         executorService.submit(() -> {
             try {
+                String formattedDueDate = task.getDueDate() != null 
+                    ? task.getDueDate().format(DateTimeFormatter.ofPattern("MM/dd/yyyy"))
+                    : "No due date";
+                
                 log.info("\n=== EMAIL NOTIFICATION (Worker Thread) ===");
                 log.info("Type: TASK UPDATED");
                 log.info("To: {}", task.getAssignee());
                 log.info("Subject: Task Updated: {}", task.getName());
                 log.info("Task ID: {}", task.getId());
                 log.info("Priority: {}", task.getPriority());
-                log.info("Due Date: {}", task.getDueDate().format(DateTimeFormatter.ofPattern("MM/dd/yyyy")));
+                log.info("Due Date: {}", formattedDueDate);
                 log.info("Status: {}", task.getStatus());
                 log.info("Message: You have been notified of an update to the task \"{}\"", task.getName());
                 log.info("==========================================\n");
