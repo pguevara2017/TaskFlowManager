@@ -10,6 +10,7 @@
 /home/runner/workspace/server-java/src/main/java/com/taskflow/controller/TaskController.java
 /home/runner/workspace/server-java/src/main/java/com/taskflow/service/TaskService.java
 /home/runner/workspace/server-java/src/main/java/com/taskflow/model/Task.java
+/home/runner/workspace/server-java/src/main/java/com/taskflow/config/DatabaseConfig.java
 /home/runner/workspace/server-java/src/main/java/com/taskflow/repository/ProjectRepository.java
 /home/runner/workspace/server-java/src/main/java/com/taskflow/dto/CreateTaskRequest.java
 /home/runner/workspace/server-java/src/main/java/com/taskflow/TaskFlowApplication.java
