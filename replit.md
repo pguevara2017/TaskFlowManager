@@ -7,7 +7,7 @@ TaskFlow is a full-stack project management application designed for teams to sc
 **Recent Migrations:** 
 - Backend migrated from Node.js/Express to Java Spring Boot with Maven for improved enterprise-grade architecture, type safety, and performance.
 - Database configuration now environment-aware: auto-detects Replit (PostgreSQL) vs local (H2 in-memory) using Spring profiles.
-- UI library migrating from Radix UI/shadcn to Material-UI for better Material Design implementation and component consistency.
+- **UI library COMPLETED migration from Radix UI/shadcn to Material-UI** (November 2025): All 14 major components migrated, all Radix UI dependencies removed (27 packages), all shadcn/ui files deleted. Application now uses 100% Material-UI components.
 
 ## User Preferences
 
@@ -42,11 +42,12 @@ Preferred communication style: Simple, everyday language.
 
 **Component Structure:**
 - MUI components imported directly from `@mui/material` and `@mui/icons-material`
-- Feature components in `client/src/components/` (TaskCard, ProjectCard, FilterBar, etc.)
+- Feature components in `client/src/components/` (TaskCard, ProjectCard, FilterBar, AppSidebar, TaskCalendar, etc.)
 - Page components in `client/src/pages/` (Dashboard, Projects, Tasks, CalendarView)
 - Theme configuration in `client/src/theme.ts` (light/dark MUI themes)
 - Path aliases configured for clean imports (@/, @shared/, @assets/)
-- **Migration in progress**: Replacing legacy shadcn/ui components with MUI equivalents
+- Responsive sidebar using MUI Drawer (permanent on desktop md+, temporary on mobile)
+- TaskCalendar uses MUI DateCalendar with date-fns for date operations
 
 ### Backend Architecture
 
@@ -161,11 +162,10 @@ Preferred communication style: Simple, everyday language.
 - **Material-UI (MUI)**: React component library implementing Material Design
   - `@mui/material`: Core UI components (Button, Card, Dialog, TextField, etc.)
   - `@mui/icons-material`: Material Design icon components
-  - `@mui/x-date-pickers`: Date and time picker components
+  - `@mui/x-date-pickers`: Date and time picker components (DateCalendar, PickersDay, LocalizationProvider)
   - `@emotion/react` & `@emotion/styled`: CSS-in-JS styling (MUI dependency)
-- **Lucide React**: Icon library for consistent iconography (transitioning to MUI icons)
-- **date-fns**: Date manipulation and formatting utility
-- **Legacy (Being Removed)**: Radix UI and shadcn/ui components being replaced with MUI
+- **Lucide React**: Icon library for custom icons (used alongside MUI icons)
+- **date-fns**: Date manipulation and formatting utility (used with MUI DatePickers)
 
 ### Form Handling
 - **React Hook Form**: Form state management and validation
