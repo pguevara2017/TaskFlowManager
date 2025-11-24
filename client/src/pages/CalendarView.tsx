@@ -2,13 +2,13 @@ import { useState } from "react";
 import { TaskCalendar } from "@/components/TaskCalendar";
 import { CreateTaskDialog } from "@/components/CreateTaskDialog";
 import {
+  FormControl,
+  InputLabel,
   Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+  MenuItem,
+  Box,
+  Typography,
+} from "@mui/material";
 
 export default function CalendarView() {
   const [selectedProject, setSelectedProject] = useState("all");
@@ -90,40 +90,44 @@ export default function CalendarView() {
     : tasks.filter(task => task.projectId === selectedProject);
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold">Calendar</h1>
-          <p className="text-muted-foreground mt-1">
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+        <Box>
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
+            Calendar
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
             View tasks by due date
-          </p>
-        </div>
+          </Typography>
+        </Box>
         <CreateTaskDialog />
-      </div>
+      </Box>
 
-      <div className="flex items-center gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="project-filter">Filter by Project</Label>
-          <Select value={selectedProject} onValueChange={setSelectedProject}>
-            <SelectTrigger className="w-[200px]" id="project-filter" data-testid="select-project-calendar">
-              <SelectValue placeholder="All Projects" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Projects</SelectItem>
-              {projects.map((project) => (
-                <SelectItem key={project.id} value={project.id}>
-                  {project.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <FormControl sx={{ minWidth: 200 }}>
+          <InputLabel id="project-filter-label">Filter by Project</InputLabel>
+          <Select
+            labelId="project-filter-label"
+            id="project-filter"
+            value={selectedProject}
+            label="Filter by Project"
+            onChange={(e) => setSelectedProject(e.target.value)}
+            data-testid="select-project-calendar"
+          >
+            <MenuItem value="all">All Projects</MenuItem>
+            {projects.map((project) => (
+              <MenuItem key={project.id} value={project.id}>
+                {project.name}
+              </MenuItem>
+            ))}
           </Select>
-        </div>
-      </div>
+        </FormControl>
+      </Box>
 
       <TaskCalendar
         tasks={filteredTasks}
         onTaskClick={(task) => console.log('Clicked task:', task)}
       />
-    </div>
+    </Box>
   );
 }
