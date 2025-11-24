@@ -1,26 +1,22 @@
-import { useState } from "react";
-import { ProjectCard } from "@/components/ProjectCard";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { fetchProjects, fetchProjectStatsBulk } from "@/lib/api";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent } from "@/components/ui/card";
+import { useState } from 'react';
+import { ProjectCard } from '@/components/ProjectCard';
+import { Button, TextField, Skeleton, Card, CardContent, Box, InputAdornment } from '@mui/material';
+import { Plus, Search } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { fetchProjects, fetchProjectStatsBulk } from '@/lib/api';
 
 export default function Projects() {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { data: projects = [], isLoading: projectsLoading } = useQuery({
-    queryKey: ["/api/projects"],
+    queryKey: ['/api/projects'],
     queryFn: () => fetchProjects(),
   });
 
-  const projectIds = projects.map(p => p.id);
-  
+  const projectIds = projects.map((p) => p.id);
+
   const { data: statsMap = {}, isLoading: statsLoading } = useQuery({
-    queryKey: ["/api/projects/stats", projectIds],
+    queryKey: ['/api/projects/stats', projectIds],
     queryFn: () => fetchProjectStatsBulk(projectIds),
     enabled: projects.length > 0,
   });
@@ -48,60 +44,102 @@ export default function Projects() {
   );
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold" data-testid="text-projects-title">
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2,
+        }}
+      >
+        <Box>
+          <Box
+            component="h1"
+            sx={{ fontSize: '1.875rem', fontWeight: 600, mb: 0.5 }}
+            data-testid="text-projects-title"
+          >
             Projects
-          </h1>
-          <p className="text-muted-foreground mt-1">
+          </Box>
+          <Box sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
             Manage and track all your projects
-          </p>
-        </div>
-        <Button className="gap-2" data-testid="button-create-project">
-          <Plus className="h-4 w-4" />
+          </Box>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<Plus size={16} />}
+          data-testid="button-create-project"
+        >
           Create Project
         </Button>
-      </div>
+      </Box>
 
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search projects..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9"
-          data-testid="input-search-projects"
-        />
-      </div>
+      <TextField
+        placeholder="Search projects..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        size="small"
+        sx={{ maxWidth: 448 }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <Search size={16} />
+            </InputAdornment>
+          ),
+        }}
+        inputProps={{ 'data-testid': 'input-search-projects' } as any}
+      />
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr',
+              md: 'repeat(2, 1fr)',
+              lg: 'repeat(3, 1fr)',
+            },
+            gap: 3,
+          }}
+        >
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Skeleton key={i} className="h-48 w-full" />
+            <Skeleton key={i} variant="rectangular" height={192} />
           ))}
-        </div>
+        </Box>
       ) : filteredProjects.length === 0 ? (
         <Card>
-          <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">
-              {searchQuery ? "No projects found matching your search" : "No projects yet. Create your first project to get started."}
-            </p>
+          <CardContent sx={{ pt: 3 }}>
+            <Box sx={{ textAlign: 'center', color: 'text.secondary' }}>
+              {searchQuery
+                ? 'No projects found matching your search'
+                : 'No projects yet. Create your first project to get started.'}
+            </Box>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr',
+              md: 'repeat(2, 1fr)',
+              lg: 'repeat(3, 1fr)',
+            },
+            gap: 3,
+          }}
+        >
           {filteredProjects.map((project) => (
             <ProjectCard
               key={project.id}
               {...project}
-              onEdit={() => console.log("Edit project", project.id)}
-              onDelete={() => console.log("Delete project", project.id)}
-              onClick={() => console.log("View project", project.id)}
+              onEdit={() => console.log('Edit project', project.id)}
+              onDelete={() => console.log('Delete project', project.id)}
+              onClick={() => console.log('View project', project.id)}
             />
           ))}
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 }

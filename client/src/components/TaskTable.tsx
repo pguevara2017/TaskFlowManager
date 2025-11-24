@@ -2,17 +2,21 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
-  TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { PriorityBadge } from "./PriorityBadge";
-import { StatusBadge } from "./StatusBadge";
-import { format } from "date-fns";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
-import { ArrowUpDown } from "lucide-react";
+  Paper,
+  Checkbox,
+  Avatar,
+  IconButton,
+  TableSortLabel,
+  Box,
+} from '@mui/material';
+import { PriorityBadge } from './PriorityBadge';
+import { StatusBadge } from './StatusBadge';
+import { format } from 'date-fns';
+import { ArrowUpDown } from 'lucide-react';
+import { useTheme } from '@mui/material/styles';
 
 interface Task {
   id: string;
@@ -20,7 +24,7 @@ interface Task {
   priority: number;
   dueDate: Date;
   assignee: string;
-  status: "PENDING" | "IN_PROGRESS" | "COMPLETED";
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
 }
 
 interface TaskTableProps {
@@ -42,90 +46,142 @@ export function TaskTable({
   sortBy,
   onTaskClick,
 }: TaskTableProps) {
+  const theme = useTheme();
+
   const getInitials = (name: string) => {
     return name
-      .split(" ")
+      .split(' ')
       .map((n) => n[0])
-      .join("")
+      .join('')
       .toUpperCase()
       .slice(0, 2);
   };
 
   if (tasks.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">No tasks found</p>
-      </div>
+      <Box sx={{ textAlign: 'center', py: 12 }}>
+        <Box sx={{ color: 'text.secondary' }}>No tasks found</Box>
+      </Box>
     );
   }
 
   return (
-    <div className="border rounded-md">
+    <TableContainer
+      component={Paper}
+      sx={{
+        border: `1px solid ${theme.palette.divider}`,
+        borderRadius: 1,
+      }}
+    >
       <Table>
-        <TableHeader>
+        <TableHead>
           <TableRow>
-            <TableHead className="w-12">
+            <TableCell padding="checkbox">
               <Checkbox
-                checked={selectedTasks.length === tasks.length}
-                onCheckedChange={onSelectAll}
-                data-testid="checkbox-select-all"
+                checked={selectedTasks.length === tasks.length && tasks.length > 0}
+                indeterminate={
+                  selectedTasks.length > 0 && selectedTasks.length < tasks.length
+                }
+                onChange={onSelectAll}
+                inputProps={{ 'data-testid': 'checkbox-select-all' } as any}
               />
-            </TableHead>
-            <TableHead>
-              <Button variant="ghost" onClick={() => onSort("name")} className="gap-1" data-testid="button-sort-name">
+            </TableCell>
+            <TableCell>
+              <TableSortLabel
+                active={sortBy === 'name'}
+                onClick={() => onSort('name')}
+                data-testid="button-sort-name"
+              >
                 Name
-                <ArrowUpDown className="h-4 w-4" />
-              </Button>
-            </TableHead>
-            <TableHead>
-              <Button variant="ghost" onClick={() => onSort("priority")} className="gap-1" data-testid="button-sort-priority">
+              </TableSortLabel>
+            </TableCell>
+            <TableCell>
+              <TableSortLabel
+                active={sortBy === 'priority'}
+                onClick={() => onSort('priority')}
+                data-testid="button-sort-priority"
+              >
                 Priority
-                <ArrowUpDown className="h-4 w-4" />
-              </Button>
-            </TableHead>
-            <TableHead>
-              <Button variant="ghost" onClick={() => onSort("dueDate")} className="gap-1" data-testid="button-sort-due-date">
+              </TableSortLabel>
+            </TableCell>
+            <TableCell>
+              <TableSortLabel
+                active={sortBy === 'dueDate'}
+                onClick={() => onSort('dueDate')}
+                data-testid="button-sort-due-date"
+              >
                 Due Date
-                <ArrowUpDown className="h-4 w-4" />
-              </Button>
-            </TableHead>
-            <TableHead>Assignee</TableHead>
-            <TableHead>Status</TableHead>
+              </TableSortLabel>
+            </TableCell>
+            <TableCell>Assignee</TableCell>
+            <TableCell>Status</TableCell>
           </TableRow>
-        </TableHeader>
+        </TableHead>
         <TableBody>
           {tasks.map((task) => (
             <TableRow
               key={task.id}
-              className="cursor-pointer hover-elevate"
+              hover
               onClick={() => onTaskClick?.(task)}
+              sx={{
+                cursor: onTaskClick ? 'pointer' : 'default',
+                position: 'relative',
+                '&::after': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'var(--elevate-1)',
+                  opacity: 0,
+                  pointerEvents: 'none',
+                  transition: 'opacity 0.2s',
+                },
+                '&:hover::after': {
+                  opacity: 1,
+                },
+              }}
               data-testid={`row-task-${task.id}`}
             >
-              <TableCell onClick={(e) => e.stopPropagation()}>
+              <TableCell
+                padding="checkbox"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <Checkbox
                   checked={selectedTasks.includes(task.id)}
-                  onCheckedChange={() => onSelectTask(task.id)}
-                  data-testid={`checkbox-task-${task.id}`}
+                  onChange={() => onSelectTask(task.id)}
+                  inputProps={{ 'data-testid': `checkbox-task-${task.id}` } as any}
                 />
               </TableCell>
-              <TableCell className="font-medium" data-testid={`text-task-name-${task.id}`}>
+              <TableCell
+                sx={{ fontWeight: 500 }}
+                data-testid={`text-task-name-${task.id}`}
+              >
                 {task.name}
               </TableCell>
               <TableCell>
                 <PriorityBadge priority={task.priority} />
               </TableCell>
               <TableCell data-testid={`text-due-date-${task.id}`}>
-                {format(task.dueDate, "MMM d, yyyy")}
+                {format(task.dueDate, 'MMM d, yyyy')}
               </TableCell>
               <TableCell>
-                <div className="flex items-center gap-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="text-xs">
-                      {getInitials(task.assignee)}
-                    </AvatarFallback>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Avatar
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      fontSize: '0.75rem',
+                      bgcolor: theme.palette.primary.main,
+                    }}
+                  >
+                    {getInitials(task.assignee)}
                   </Avatar>
-                  <span className="text-sm">{task.assignee}</span>
-                </div>
+                  <Box component="span" sx={{ fontSize: '0.875rem' }}>
+                    {task.assignee}
+                  </Box>
+                </Box>
               </TableCell>
               <TableCell>
                 <StatusBadge status={task.status} />
@@ -134,6 +190,6 @@ export function TaskTable({
           ))}
         </TableBody>
       </Table>
-    </div>
+    </TableContainer>
   );
 }
