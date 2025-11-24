@@ -126,10 +126,13 @@ Preferred communication style: Simple, everyday language.
 
 **Maven Configuration (pom.xml):**
 - Spring Boot 3.2.0 with Java 21
-- Dependencies: Spring Web, Spring Data JPA, PostgreSQL driver, H2 database, Lombok, validation
-- Maven plugins: spring-boot-maven-plugin, maven-compiler-plugin
+- Dependencies: Spring Web, Spring Data JPA, PostgreSQL driver, H2 database, Lombok 1.18.36, validation
+- Maven plugins: 
+  - `maven-compiler-plugin` 3.13.0: Configured with Java 21 and Lombok annotation processor paths for local development compatibility
+  - `spring-boot-maven-plugin`: Packages executable JAR
 - Build produces executable JAR with embedded Tomcat
 - **H2 Dependency**: Added for local in-memory database support (scope: runtime)
+- **Lombok 1.18.36**: Explicitly versioned for Java 21 compatibility (fixes `TypeTag :: UNKNOWN` errors on local machines)
 
 **TypeScript Configuration:**
 - Frontend: Strict mode enabled for type safety
