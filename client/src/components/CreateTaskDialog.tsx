@@ -150,8 +150,9 @@ export function CreateTaskDialog({ projectId }: CreateTaskDialogProps) {
                 value={selectedProjectId || ''}
                 onChange={(e) => setSelectedProjectId(e.target.value)}
                 label="Project"
-                disabled={!!projectId}
+                disabled={projectsLoading}
                 data-testid="select-project"
+                displayEmpty
               >
                 <MenuItem value="" disabled>
                   {projectsLoading ? 'Loading projects...' : 'Select a project'}

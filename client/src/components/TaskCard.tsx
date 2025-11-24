@@ -77,10 +77,18 @@ export function TaskCard({
         minHeight: 120,
         cursor: 'pointer',
         borderLeft: `4px solid ${getStatusColor()}`,
-        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-        '&:hover': {
-          transform: 'translateY(-2px)',
-          boxShadow: theme.shadows[8],
+        position: 'relative',
+        '&::after': {
+          content: '""',
+          pointerEvents: 'none',
+          position: 'absolute',
+          inset: 0,
+          borderRadius: 'inherit',
+          zIndex: 1,
+          transition: 'background-color 0.2s ease',
+        },
+        '&:hover::after': {
+          backgroundColor: 'var(--elevate-1)',
         },
       }}
     >

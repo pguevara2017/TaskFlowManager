@@ -54,7 +54,7 @@ export function FilterBar({
           <InputLabel>Project</InputLabel>
           <Select
             value={selectedProject || 'all'}
-            onChange={(e) => onProjectChange(e.target.value === 'all' ? undefined as unknown as string : e.target.value)}
+            onChange={(e) => onProjectChange(e.target.value)}
             label="Project"
             data-testid="select-project"
           >
@@ -71,7 +71,7 @@ export function FilterBar({
           <InputLabel>Status</InputLabel>
           <Select
             value={selectedStatus || 'all'}
-            onChange={(e) => onStatusChange(e.target.value === 'all' ? undefined as unknown as string : e.target.value)}
+            onChange={(e) => onStatusChange(e.target.value)}
             label="Status"
             data-testid="select-status-filter"
           >
@@ -86,7 +86,7 @@ export function FilterBar({
           <InputLabel>Priority</InputLabel>
           <Select
             value={selectedPriority || 'all'}
-            onChange={(e) => onPriorityChange(e.target.value === 'all' ? undefined as unknown as string : e.target.value)}
+            onChange={(e) => onPriorityChange(e.target.value)}
             label="Priority"
             data-testid="select-priority-filter"
           >
