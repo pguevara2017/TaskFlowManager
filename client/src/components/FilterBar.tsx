@@ -1,13 +1,5 @@
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Search, Filter } from "lucide-react";
+import { TextField, Select, MenuItem, FormControl, InputLabel, Box, InputAdornment } from "@mui/material";
+import { Search } from "lucide-react";
 
 interface FilterBarProps {
   searchQuery: string;
@@ -33,59 +25,80 @@ export function FilterBar({
   onPriorityChange,
 }: FilterBarProps) {
   return (
-    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-      <div className="relative flex-1 min-w-0">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search tasks..."
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-9"
-          data-testid="input-search"
-        />
-      </div>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: { xs: 'column', sm: 'row' },
+        gap: 2,
+        alignItems: { xs: 'stretch', sm: 'center' },
+      }}
+    >
+      <TextField
+        placeholder="Search tasks..."
+        value={searchQuery}
+        onChange={(e) => onSearchChange(e.target.value)}
+        size="small"
+        sx={{ flex: 1, minWidth: 0 }}
+        data-testid="input-search"
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <Search className="h-4 w-4" />
+            </InputAdornment>
+          ),
+        }}
+      />
 
-      <div className="flex flex-wrap gap-2">
-        <Select value={selectedProject} onValueChange={onProjectChange}>
-          <SelectTrigger className="w-[180px]" data-testid="select-project">
-            <SelectValue placeholder="All Projects" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Projects</SelectItem>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+        <FormControl size="small" sx={{ minWidth: 180 }}>
+          <InputLabel>Project</InputLabel>
+          <Select
+            value={selectedProject || 'all'}
+            onChange={(e) => onProjectChange(e.target.value === 'all' ? undefined as unknown as string : e.target.value)}
+            label="Project"
+            data-testid="select-project"
+          >
+            <MenuItem value="all">All Projects</MenuItem>
             {projects.map((project) => (
-              <SelectItem key={project.id} value={project.id}>
+              <MenuItem key={project.id} value={project.id}>
                 {project.name}
-              </SelectItem>
+              </MenuItem>
             ))}
-          </SelectContent>
-        </Select>
+          </Select>
+        </FormControl>
 
-        <Select value={selectedStatus} onValueChange={onStatusChange}>
-          <SelectTrigger className="w-[150px]" data-testid="select-status-filter">
-            <SelectValue placeholder="All Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="PENDING">Pending</SelectItem>
-            <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-            <SelectItem value="COMPLETED">Completed</SelectItem>
-          </SelectContent>
-        </Select>
+        <FormControl size="small" sx={{ minWidth: 150 }}>
+          <InputLabel>Status</InputLabel>
+          <Select
+            value={selectedStatus || 'all'}
+            onChange={(e) => onStatusChange(e.target.value === 'all' ? undefined as unknown as string : e.target.value)}
+            label="Status"
+            data-testid="select-status-filter"
+          >
+            <MenuItem value="all">All Status</MenuItem>
+            <MenuItem value="PENDING">Pending</MenuItem>
+            <MenuItem value="IN_PROGRESS">In Progress</MenuItem>
+            <MenuItem value="COMPLETED">Completed</MenuItem>
+          </Select>
+        </FormControl>
 
-        <Select value={selectedPriority} onValueChange={onPriorityChange}>
-          <SelectTrigger className="w-[150px]" data-testid="select-priority-filter">
-            <SelectValue placeholder="All Priority" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Priority</SelectItem>
-            <SelectItem value="1">Critical</SelectItem>
-            <SelectItem value="2">High</SelectItem>
-            <SelectItem value="3">Medium</SelectItem>
-            <SelectItem value="4">Low</SelectItem>
-            <SelectItem value="5">Lowest</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
+        <FormControl size="small" sx={{ minWidth: 150 }}>
+          <InputLabel>Priority</InputLabel>
+          <Select
+            value={selectedPriority || 'all'}
+            onChange={(e) => onPriorityChange(e.target.value === 'all' ? undefined as unknown as string : e.target.value)}
+            label="Priority"
+            data-testid="select-priority-filter"
+          >
+            <MenuItem value="all">All Priority</MenuItem>
+            <MenuItem value="1">Critical</MenuItem>
+            <MenuItem value="2">High</MenuItem>
+            <MenuItem value="3">Medium</MenuItem>
+            <MenuItem value="4">Low</MenuItem>
+            <MenuItem value="5">Lowest</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
+    </Box>
   );
 }

@@ -2,26 +2,19 @@ import { useState } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
+  DialogActions,
+  Button,
+  TextField,
   Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Plus } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Box,
+  IconButton,
+} from "@mui/material";
+import { Plus, X } from "lucide-react";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createTask, fetchProjects } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
@@ -103,160 +96,156 @@ export function CreateTaskDialog({ projectId }: CreateTaskDialogProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button data-testid="button-create-task" className="gap-2">
-          <Plus className="h-4 w-4" />
-          Create Task
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">Create New Task</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="task-name">Task Name *</Label>
-            <Input
-              id="task-name"
+    <>
+      <Button
+        variant="contained"
+        startIcon={<Plus className="h-4 w-4" />}
+        onClick={() => setOpen(true)}
+        data-testid="button-create-task"
+      >
+        Create Task
+      </Button>
+      
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, pb: 1 }}>
+          <DialogTitle sx={{ p: 0, fontSize: '1.25rem', fontWeight: 600 }}>
+            Create New Task
+          </DialogTitle>
+          <IconButton onClick={() => setOpen(false)} size="small">
+            <X className="h-5 w-5" />
+          </IconButton>
+        </Box>
+        
+        <form onSubmit={handleSubmit}>
+          <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <TextField
+              label="Task Name"
               placeholder="Enter task name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              fullWidth
               data-testid="input-task-name"
             />
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="task-description">Description</Label>
-            <Textarea
-              id="task-description"
+            <TextField
+              label="Description"
               placeholder="Enter task description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              multiline
               rows={3}
+              fullWidth
               data-testid="input-task-description"
             />
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="project">Project *</Label>
-            <Select
-              value={selectedProjectId}
-              onValueChange={setSelectedProjectId}
-              required
-              disabled={!!projectId}
-            >
-              <SelectTrigger id="project" data-testid="select-project">
-                <SelectValue placeholder="Select project" />
-              </SelectTrigger>
-              <SelectContent>
+            <FormControl fullWidth required>
+              <InputLabel>Project</InputLabel>
+              <Select
+                value={selectedProjectId || ''}
+                onChange={(e) => setSelectedProjectId(e.target.value)}
+                label="Project"
+                disabled={!!projectId}
+                data-testid="select-project"
+              >
+                <MenuItem value="" disabled>
+                  {projectsLoading ? 'Loading projects...' : 'Select a project'}
+                </MenuItem>
                 {projects.map((project) => (
-                  <SelectItem key={project.id} value={project.id}>
+                  <MenuItem key={project.id} value={project.id}>
                     {project.name}
-                  </SelectItem>
+                  </MenuItem>
                 ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="priority">Priority *</Label>
-              <Select value={priority} onValueChange={setPriority} required>
-                <SelectTrigger id="priority" data-testid="select-priority">
-                  <SelectValue placeholder="Select priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1 - Critical</SelectItem>
-                  <SelectItem value="2">2 - High</SelectItem>
-                  <SelectItem value="3">3 - Medium</SelectItem>
-                  <SelectItem value="4">4 - Low</SelectItem>
-                  <SelectItem value="5">5 - Lowest</SelectItem>
-                </SelectContent>
               </Select>
-            </div>
+            </FormControl>
 
-            <div className="space-y-2">
-              <Label htmlFor="status">Status *</Label>
-              <Select value={status} onValueChange={setStatus} required>
-                <SelectTrigger id="status" data-testid="select-status">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="PENDING">Pending</SelectItem>
-                  <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                  <SelectItem value="COMPLETED">Completed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+              <FormControl fullWidth required>
+                <InputLabel>Priority</InputLabel>
+                <Select
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value)}
+                  label="Priority"
+                  data-testid="select-priority"
+                >
+                  <MenuItem value="1">1 - Critical</MenuItem>
+                  <MenuItem value="2">2 - High</MenuItem>
+                  <MenuItem value="3">3 - Medium</MenuItem>
+                  <MenuItem value="4">4 - Low</MenuItem>
+                  <MenuItem value="5">5 - Lowest</MenuItem>
+                </Select>
+              </FormControl>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="assignee">Assignee *</Label>
-              <Input
-                id="assignee"
+              <FormControl fullWidth required>
+                <InputLabel>Status</InputLabel>
+                <Select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  label="Status"
+                  data-testid="select-status"
+                >
+                  <MenuItem value="PENDING">Pending</MenuItem>
+                  <MenuItem value="IN_PROGRESS">In Progress</MenuItem>
+                  <MenuItem value="COMPLETED">Completed</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+              <TextField
+                label="Assignee"
                 placeholder="Enter assignee name"
                 value={assignee}
                 onChange={(e) => setAssignee(e.target.value)}
                 required
+                fullWidth
                 data-testid="input-assignee"
               />
-            </div>
 
-            <div className="space-y-2">
-              <Label>Due Date (Optional)</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                    data-testid="button-due-date"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dueDate ? format(dueDate, "PPP") : <span className="text-muted-foreground">No due date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={dueDate}
-                    onSelect={setDueDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              {dueDate && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setDueDate(undefined)}
-                  className="w-full"
-                  data-testid="button-clear-due-date"
-                >
-                  Clear due date
-                </Button>
-              )}
-            </div>
-          </div>
+              <Box>
+                <DatePicker
+                  label="Due Date (Optional)"
+                  value={dueDate || null}
+                  onChange={(newValue) => setDueDate(newValue || undefined)}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      inputProps: {
+                        'data-testid': 'button-due-date',
+                      },
+                    },
+                    actionBar: {
+                      actions: ['clear'],
+                    },
+                  }}
+                />
+              </Box>
+            </Box>
+          </DialogContent>
 
-          <div className="flex justify-end gap-2">
+          <DialogActions sx={{ px: 3, pb: 2 }}>
             <Button
-              type="button"
-              variant="outline"
               onClick={() => setOpen(false)}
               data-testid="button-cancel"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={createTaskMutation.isPending || projectsLoading} data-testid="button-submit">
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={createTaskMutation.isPending || projectsLoading}
+              data-testid="button-submit"
+            >
               {createTaskMutation.isPending ? "Creating..." : projectsLoading ? "Loading..." : "Create Task"}
             </Button>
-          </div>
+          </DialogActions>
         </form>
-      </DialogContent>
-    </Dialog>
+      </Dialog>
+    </>
   );
 }

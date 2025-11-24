@@ -1,16 +1,9 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Card, CardContent, Avatar, IconButton, Menu, MenuItem, Box, Typography, useTheme } from "@mui/material";
 import { PriorityBadge } from "./PriorityBadge";
 import { StatusBadge } from "./StatusBadge";
-import { Button } from "@/components/ui/button";
 import { Calendar, MoreVertical } from "lucide-react";
 import { format } from "date-fns";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { useState } from "react";
 
 interface TaskCardProps {
   id: string;
@@ -37,6 +30,9 @@ export function TaskCard({
   onDelete,
   onClick,
 }: TaskCardProps) {
+  const theme = useTheme();
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -47,58 +43,105 @@ export function TaskCard({
   };
 
   const getStatusColor = () => {
-    if (status === "COMPLETED") return "border-l-chart-2";
-    if (status === "IN_PROGRESS") return "border-l-chart-4";
-    return "border-l-muted-foreground";
+    if (status === "COMPLETED") return theme.palette.success.main;
+    if (status === "IN_PROGRESS") return theme.palette.primary.main;
+    return theme.palette.grey[500];
+  };
+
+  const handleMenuClick = (e: React.MouseEvent<HTMLElement>) => {
+    e.stopPropagation();
+    setAnchorEl(e.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    handleMenuClose();
+    onEdit?.();
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    handleMenuClose();
+    onDelete?.();
   };
 
   return (
     <Card
-      className={`border-l-4 ${getStatusColor()} hover-elevate cursor-pointer min-h-[120px]`}
       onClick={onClick}
       data-testid={`card-task-${id}`}
+      sx={{
+        minHeight: 120,
+        cursor: 'pointer',
+        borderLeft: `4px solid ${getStatusColor()}`,
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        '&:hover': {
+          transform: 'translateY(-2px)',
+          boxShadow: theme.shadows[8],
+        },
+      }}
     >
-      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 gap-2">
-        <div className="flex-1 min-w-0">
-          <h3 className="font-medium text-base line-clamp-2" data-testid={`text-task-name-${id}`}>
+      <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 2 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 500, flex: 1, pr: 1 }} data-testid={`text-task-name-${id}`}>
             {name}
-          </h3>
-        </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-            <Button variant="ghost" size="icon" className="h-8 w-8" data-testid={`button-task-menu-${id}`}>
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit?.(); }} data-testid={`button-edit-task-${id}`}>
+          </Typography>
+          <IconButton size="small" onClick={handleMenuClick} data-testid={`button-task-menu-${id}`}>
+            <MoreVertical className="h-4 w-4" />
+          </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleMenuClose}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          >
+            <MenuItem onClick={handleEdit} data-testid={`button-edit-task-${id}`}>
               Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete?.(); }} data-testid={`button-delete-task-${id}`}>
+            </MenuItem>
+            <MenuItem onClick={handleDelete} data-testid={`button-delete-task-${id}`}>
               Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </CardHeader>
-      <CardContent className="space-y-4">
+            </MenuItem>
+          </Menu>
+        </Box>
+        
         {description && (
-          <p className="text-sm text-muted-foreground line-clamp-2">{description}</p>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              mb: 2,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+            }}
+          >
+            {description}
+          </Typography>
         )}
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-2">
+        
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <PriorityBadge priority={priority} />
             <StatusBadge status={status} />
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-              <Calendar className="h-4 w-4" />
-              <span data-testid={`text-due-date-${id}`}>{format(dueDate, "MMM d")}</span>
-            </div>
-            <Avatar className="h-8 w-8">
-              <AvatarFallback className="text-xs">{getInitials(assignee)}</AvatarFallback>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Calendar className="h-4 w-4" style={{ color: 'var(--mui-palette-text-secondary)' }} />
+              <Typography variant="body2" color="text.secondary" data-testid={`text-due-date-${id}`}>
+                {format(dueDate, "MMM d")}
+              </Typography>
+            </Box>
+            <Avatar sx={{ width: 32, height: 32, fontSize: '0.75rem' }}>
+              {getInitials(assignee)}
             </Avatar>
-          </div>
-        </div>
+          </Box>
+        </Box>
       </CardContent>
     </Card>
   );

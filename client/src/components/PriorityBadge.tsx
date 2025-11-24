@@ -1,15 +1,15 @@
-import { Badge } from "@/components/ui/badge";
+import { Chip } from "@mui/material";
 
 interface PriorityBadgeProps {
   priority: number;
 }
 
 export function PriorityBadge({ priority }: PriorityBadgeProps) {
-  const getVariant = () => {
-    if (priority === 1) return "destructive";
-    if (priority === 2) return "destructive";
-    if (priority === 3) return "secondary";
-    return "secondary";
+  const getColor = (): "error" | "warning" | "default" => {
+    if (priority === 1) return "error";
+    if (priority === 2) return "error";
+    if (priority === 3) return "warning";
+    return "default";
   };
 
   const getLabel = () => {
@@ -21,8 +21,12 @@ export function PriorityBadge({ priority }: PriorityBadgeProps) {
   };
 
   return (
-    <Badge variant={getVariant()} className="text-xs font-semibold uppercase" data-testid={`badge-priority-${priority}`}>
-      {getLabel()}
-    </Badge>
+    <Chip
+      label={getLabel()}
+      color={getColor()}
+      size="small"
+      sx={{ textTransform: 'uppercase', fontWeight: 600, fontSize: '0.75rem' }}
+      data-testid={`badge-priority-${priority}`}
+    />
   );
 }
