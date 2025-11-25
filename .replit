@@ -8,7 +8,11 @@ packages = ["jdk", "maven"]
 
 [deployment]
 deploymentTarget = "autoscale"
-build = ["npm", "run", "build"]
+build = [
+  "sh",
+  "-c",
+  "npm run build && cd server-java && mvn clean package -DskipTests",
+]
 run = ["npm", "run", "start"]
 
 [[ports]]
