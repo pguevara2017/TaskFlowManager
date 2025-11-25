@@ -36,11 +36,14 @@ async function startVite() {
       ...viteConfig,
       configFile: false,
       server: {
-        ...viteConfig.server,
         port: 5000,
         host: '0.0.0.0',
         strictPort: true,
         allowedHosts: true,
+        fs: {
+          strict: true,
+          deny: ['**/.*'],
+        },
       },
     });
     
