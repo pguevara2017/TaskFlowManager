@@ -21,6 +21,7 @@ public class CorsConfig {
             "http://localhost:*",
             "http://127.0.0.1:*",
             "https://*.replit.dev",
+            "https://*.replit.app",
             "https://*.repl.co"
         ));
         config.setAllowedHeaders(Arrays.asList("*"));
