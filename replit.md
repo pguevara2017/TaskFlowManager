@@ -125,14 +125,68 @@ Preferred communication style: Simple, everyday language.
 - Single deployable JAR contains both frontend and backend
 
 **Maven Configuration (pom.xml):**
-- Spring Boot 3.2.0 with Java 21
-- Dependencies: Spring Web, Spring Data JPA, PostgreSQL driver, H2 database, Lombok 1.18.36, validation
+- Spring Boot 3.2.0 with Java 21+ (compatible with Java 21, 22, 23, 24)
+- Dependencies: Spring Web, Spring Data JPA, PostgreSQL driver, H2 database, Lombok 1.18.38, validation
 - Maven plugins: 
   - `maven-compiler-plugin` 3.13.0: Configured with Java 21 and Lombok annotation processor paths for local development compatibility
   - `spring-boot-maven-plugin`: Packages executable JAR
 - Build produces executable JAR with embedded Tomcat
 - **H2 Dependency**: Added for local in-memory database support (scope: runtime)
-- **Lombok 1.18.36**: Explicitly versioned for Java 21 compatibility (fixes `TypeTag :: UNKNOWN` errors on local machines)
+- **Lombok 1.18.38**: Explicitly versioned for Java 24 compatibility (use 1.18.30+ for Java 21, 1.18.36+ for Java 23, 1.18.38+ for Java 24)
+
+## Local Development Setup (Windows)
+
+### Prerequisites
+- **Java 21+**: JDK 21, 22, 23, or 24 (tested with Java 24)
+- **Maven**: Apache Maven 3.9+ (or use included Maven wrapper `./mvnw`)
+- **Node.js**: Node.js 18+ with npm
+
+### Running Locally on Windows
+
+1. **Clone the repository** and open a terminal in the project root
+
+2. **Install npm dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Start the development servers**:
+   ```bash
+   npm run dev
+   ```
+   This command uses `cross-env` for Windows compatibility and starts:
+   - **Vite frontend dev server** on `http://localhost:5000`
+   - **Spring Boot backend** on `http://localhost:8080` with `local` profile (H2 database)
+
+4. **Access the application** at `http://localhost:5000`
+
+### Profile Auto-Detection
+- **Replit environment**: Automatically uses `replit` profile with PostgreSQL when `DATABASE_URL` exists
+- **Local environment**: Automatically uses `local` profile with H2 in-memory database when `DATABASE_URL` is absent
+- No manual profile configuration needed - the application auto-detects the environment
+
+### H2 Console (Local Development Only)
+When running locally, the H2 database console is available at:
+- URL: `http://localhost:8080/h2-console`
+- JDBC URL: `jdbc:h2:mem:taskflowdb`
+- Username: `sa`
+- Password: (empty)
+
+### Troubleshooting Windows
+
+**If `npm run dev` fails with NODE_ENV errors:**
+- Ensure `cross-env` is installed: `npm install`
+- The `package.json` scripts use `cross-env` for Windows compatibility
+
+**If Spring Boot fails to start with Lombok errors:**
+- Ensure Lombok version in `pom.xml` matches your Java version:
+  - Java 21: Lombok 1.18.30+
+  - Java 23: Lombok 1.18.36+
+  - Java 24: Lombok 1.18.38+
+
+**If Maven can't find Java:**
+- Ensure `JAVA_HOME` environment variable is set correctly
+- Ensure Java is in your PATH
 
 **TypeScript Configuration:**
 - Frontend: Strict mode enabled for type safety
