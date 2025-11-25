@@ -118,11 +118,16 @@ Preferred communication style: Simple, everyday language.
 - Source maps for frontend debugging
 - SLF4J logging for backend debugging
 
-**Production Build:**
+**Production Build & Deployment:**
 - Frontend: Vite builds client to `dist/public`
-- Backend: Maven packages Spring Boot executable JAR
-- Spring Boot serves static frontend assets from classpath
+- Backend: Maven packages Spring Boot executable JAR with static files bundled in
+- Spring Boot serves static frontend assets from classpath via `WebConfig.java`
 - Single deployable JAR contains both frontend and backend
+- **Replit Deployment**: 
+  - `npm run build` builds the frontend; `npm run start` runs the Node.js orchestrator
+  - Production orchestrator (`dist/index.js`) auto-builds Spring Boot JAR if missing
+  - Spring Boot runs with `production` profile on port 5000 (Replit's external port)
+  - SPA routing handled by WebConfig fallback to `index.html` for non-API routes
 
 **Maven Configuration (pom.xml):**
 - Spring Boot 3.2.0 with Java 21+ (compatible with Java 21, 22, 23, 24)
