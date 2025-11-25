@@ -91,17 +91,25 @@ async function startDevelopment() {
 function startProduction() {
   console.log('🏭 Starting TaskFlow in PRODUCTION mode...\n');
 
-  // Always rebuild JAR to ensure fresh static files are bundled
-  console.log('📦 Building Spring Boot JAR with latest static files...');
-  try {
-    execSync('mvn clean package -DskipTests', { 
-      cwd: join(projectRoot, 'server-java'), 
-      stdio: 'inherit' 
-    });
-    console.log('✅ Spring Boot JAR built successfully!\n');
-  } catch (error) {
-    console.error('❌ Failed to build Spring Boot JAR:', error);
-    process.exit(1);
+  const jarPath = join(projectRoot, 'server-java', 'target', 'taskflow-api-1.0.0.jar');
+  
+  // Check if JAR exists (should be pre-built during deployment build phase)
+  if (!existsSync(jarPath)) {
+    console.log('📦 JAR not found, attempting to build...');
+    try {
+      execSync('mvn clean package -DskipTests', { 
+        cwd: join(projectRoot, 'server-java'), 
+        stdio: 'inherit' 
+      });
+      console.log('✅ Spring Boot JAR built successfully!\n');
+    } catch (error) {
+      console.error('❌ Failed to build Spring Boot JAR.');
+      console.error('   The JAR should be pre-built during the deployment build phase.');
+      console.error('   Error:', error);
+      process.exit(1);
+    }
+  } else {
+    console.log('✅ Found pre-built JAR at:', jarPath);
   }
 
   console.log('🚀 Starting Spring Boot JAR on port 5000...\n');
