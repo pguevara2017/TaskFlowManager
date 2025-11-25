@@ -91,20 +91,17 @@ async function startDevelopment() {
 function startProduction() {
   console.log('🏭 Starting TaskFlow in PRODUCTION mode...\n');
 
-  const jarPath = join(projectRoot, 'server-java', 'target', 'taskflow-api-1.0.0.jar');
-  
-  if (!existsSync(jarPath)) {
-    console.log('📦 Spring Boot JAR not found, building...');
-    try {
-      execSync('mvn clean package -DskipTests', { 
-        cwd: join(projectRoot, 'server-java'), 
-        stdio: 'inherit' 
-      });
-      console.log('✅ Spring Boot JAR built successfully!\n');
-    } catch (error) {
-      console.error('❌ Failed to build Spring Boot JAR:', error);
-      process.exit(1);
-    }
+  // Always rebuild JAR to ensure fresh static files are bundled
+  console.log('📦 Building Spring Boot JAR with latest static files...');
+  try {
+    execSync('mvn clean package -DskipTests', { 
+      cwd: join(projectRoot, 'server-java'), 
+      stdio: 'inherit' 
+    });
+    console.log('✅ Spring Boot JAR built successfully!\n');
+  } catch (error) {
+    console.error('❌ Failed to build Spring Boot JAR:', error);
+    process.exit(1);
   }
 
   console.log('🚀 Starting Spring Boot JAR on port 5000...\n');
