@@ -14,6 +14,7 @@ import {
   IconButton,
 } from "@mui/material";
 import { Plus, X } from "lucide-react";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createTask, fetchProjects } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
@@ -207,20 +208,24 @@ export function CreateTaskDialog({ projectId }: CreateTaskDialogProps) {
                 data-testid="input-assignee"
               />
 
-              <TextField
-                label="Due Date (Optional)"
-                type="date"
-                value={dueDate ? dueDate.toISOString().split('T')[0] : ''}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setDueDate(value ? new Date(value) : undefined);
-                }}
-                fullWidth
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                data-testid="input-due-date"
-              />
+              <Box>
+                <DatePicker
+                  label="Due Date (Optional)"
+                  value={dueDate || null}
+                  onChange={(newValue) => setDueDate(newValue || undefined)}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      inputProps: {
+                        'data-testid': 'button-due-date',
+                      },
+                    },
+                    actionBar: {
+                      actions: ['clear'],
+                    },
+                  }}
+                />
+              </Box>
             </Box>
           </DialogContent>
 

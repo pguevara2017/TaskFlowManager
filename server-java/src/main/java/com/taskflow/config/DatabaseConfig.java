@@ -4,14 +4,12 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 
 import javax.sql.DataSource;
 import java.net.URI;
 import java.net.URISyntaxException;
 
 @Configuration
-@Profile({"replit", "production"})
 public class DatabaseConfig {
     
     @Bean
@@ -51,23 +49,11 @@ public class DatabaseConfig {
                 query != null ? "?" + query : ""
             );
             
-            // Check if production profile - use smaller pool for faster startup
-            String activeProfiles = System.getProperty("spring.profiles.active", "");
-            boolean isProduction = activeProfiles.contains("production");
-            
             HikariConfig config = new HikariConfig();
             config.setJdbcUrl(jdbcUrl);
             config.setUsername(username);
             config.setPassword(password);
-            
-            if (isProduction) {
-                // Smaller pool for faster production startup
-                config.setMinimumIdle(1);
-                config.setMaximumPoolSize(5);
-                config.setConnectionTimeout(10000); // 10 seconds
-            } else {
-                config.setMaximumPoolSize(10);
-            }
+            config.setMaximumPoolSize(10);
             
             return new HikariDataSource(config);
         } catch (URISyntaxException e) {

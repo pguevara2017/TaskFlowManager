@@ -7,8 +7,10 @@ import {
   Box,
   Paper,
 } from '@mui/material';
-import { DayPicker } from 'react-day-picker';
-import 'react-day-picker/dist/style.css';
+import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { PickersDay, PickersDayProps } from '@mui/x-date-pickers/PickersDay';
 import { format, isSameDay } from 'date-fns';
 import { PriorityBadge } from './PriorityBadge';
 import { useTheme } from '@mui/material/styles';
@@ -27,9 +29,31 @@ interface TaskCalendarProps {
   onTaskClick?: (task: Task) => void;
 }
 
+function ServerDay(
+  props: PickersDayProps & { hasTasksOnDate?: boolean }
+) {
+  const { hasTasksOnDate, day, ...other } = props;
+
+  return (
+    <Box sx={{ position: 'relative' }}>
+      <PickersDay
+        {...other}
+        day={day}
+        sx={{
+          ...(hasTasksOnDate && {
+            fontWeight: 'bold',
+            borderBottom: '2px solid',
+            borderBottomColor: 'primary.main',
+          }),
+        }}
+      />
+    </Box>
+  );
+}
+
 export function TaskCalendar({ tasks, onTaskClick }: TaskCalendarProps) {
   const theme = useTheme();
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 
   // Normalize tasks to ensure dueDate is always a Date object
   const normalizedTasks = tasks.map((task) => ({
@@ -44,9 +68,9 @@ export function TaskCalendar({ tasks, onTaskClick }: TaskCalendarProps) {
 
   const selectedDateTasks = selectedDate ? getTasksForDate(selectedDate) : [];
 
-  // Get all dates that have tasks for highlighting
-  const tasksWithDueDates = normalizedTasks.filter(task => task.dueDate);
-  const datesWithTasks = tasksWithDueDates.map(task => task.dueDate);
+  const hasTasksOnDate = (date: Date) => {
+    return normalizedTasks.some((task) => isSameDay(task.dueDate, date));
+  };
 
   return (
     <Box
@@ -62,45 +86,28 @@ export function TaskCalendar({ tasks, onTaskClick }: TaskCalendarProps) {
             <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
               Calendar View
             </Typography>
-            <Box
-              sx={{
-                '& .rdp': {
-                  '--rdp-cell-size': '40px',
-                  '--rdp-accent-color': theme.palette.primary.main,
-                  '--rdp-background-color': theme.palette.primary.light,
-                  margin: 0,
-                },
-                '& .rdp-months': {
-                  justifyContent: 'center',
-                },
-                '& .rdp-day_selected': {
-                  backgroundColor: theme.palette.primary.main,
-                  color: theme.palette.primary.contrastText,
-                  fontWeight: 'bold',
-                },
-                '& .rdp-day_today': {
-                  fontWeight: 'bold',
-                },
-                '& .rdp-day': {
-                  borderRadius: '4px',
-                },
-              }}
-            >
-              <DayPicker
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                modifiers={{
-                  hasTask: datesWithTasks,
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <DateCalendar
+                value={selectedDate}
+                onChange={(newValue) => setSelectedDate(newValue)}
+                slots={{
+                  day: ServerDay,
                 }}
-                modifiersStyles={{
-                  hasTask: {
-                    fontWeight: 'bold',
-                    borderBottom: `2px solid ${theme.palette.primary.main}`,
+                slotProps={{
+                  day: (ownerState) =>
+                    ({
+                      hasTasksOnDate: hasTasksOnDate(ownerState.day),
+                    } as any),
+                }}
+                sx={{
+                  width: '100%',
+                  '& .MuiPickersCalendarHeader-root': {
+                    paddingLeft: 1,
+                    paddingRight: 1,
                   },
                 }}
               />
-            </Box>
+            </LocalizationProvider>
           </CardContent>
         </Card>
       </Box>

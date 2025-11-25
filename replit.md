@@ -47,8 +47,7 @@ Preferred communication style: Simple, everyday language.
 - Theme configuration in `client/src/theme.ts` (light/dark MUI themes)
 - Path aliases configured for clean imports (@/, @shared/, @assets/)
 - Responsive sidebar using MUI Drawer (permanent on desktop md+, temporary on mobile)
-- TaskCalendar uses react-day-picker with custom MUI styling for date selection
-- CreateTaskDialog uses native HTML5 date input (type="date") for due date selection
+- TaskCalendar uses MUI DateCalendar with date-fns for date operations
 
 ### Backend Architecture
 
@@ -122,20 +121,8 @@ Preferred communication style: Simple, everyday language.
 **Production Build:**
 - Frontend: Vite builds client to `dist/public`
 - Backend: Maven packages Spring Boot executable JAR
-- Spring Boot serves static frontend assets from `dist/public/`
+- Spring Boot serves static frontend assets from classpath
 - Single deployable JAR contains both frontend and backend
-
-**Production Deployment (Replit):**
-- `NODE_ENV=production` triggers production mode in `server/index.ts`
-- Production mode:
-  1. Builds frontend (if not already built)
-  2. Starts Spring Boot on port 5000 with `production` profile
-  3. Spring Boot serves both API (`/api/*`) and static files
-- Key configuration:
-  - `SpaController.java`: Forwards non-API routes to `index.html` for SPA routing
-  - `WebConfig.java`: Configures static resource handlers for production profile
-  - `application.yml`: Production profile runs on port 5000, serves static files from `../dist/public/`
-- Frontend API calls use relative URLs (empty `VITE_API_BASE_URL`) in production
 
 **Maven Configuration (pom.xml):**
 - Spring Boot 3.2.0 with Java 21
@@ -178,10 +165,10 @@ Preferred communication style: Simple, everyday language.
 - **Material-UI (MUI)**: React component library implementing Material Design
   - `@mui/material`: Core UI components (Button, Card, Dialog, TextField, etc.)
   - `@mui/icons-material`: Material Design icon components
+  - `@mui/x-date-pickers`: Date and time picker components (DateCalendar, PickersDay, LocalizationProvider)
   - `@emotion/react` & `@emotion/styled`: CSS-in-JS styling (MUI dependency)
-- **react-day-picker**: Flexible date picker component for calendar views
 - **Lucide React**: Icon library for custom icons (used alongside MUI icons)
-- **date-fns**: Date manipulation and formatting utility (used with react-day-picker)
+- **date-fns**: Date manipulation and formatting utility (used with MUI DatePickers)
 
 ### Form Handling
 - **React Hook Form**: Form state management and validation
@@ -204,80 +191,3 @@ Preferred communication style: Simple, everyday language.
 - **Orchestrator**: Node.js script manages both Spring Boot and Vite processes
 - **Background Processing**: Java ExecutorService with fixed thread pool (4 workers)
 - **Database Pooling**: HikariCP for connection management
-
-## Running Locally on Windows
-
-### Prerequisites
-- **Java 21** (Oracle JDK or OpenJDK)
-- **Maven 3.8+**
-- **Node.js 18+** with npm
-- **Git** (to clone the repository)
-
-### Setup Instructions
-
-1. **Verify Java Version**
-   ```bash
-   java -version
-   ```
-   Should show Java 21. If not, download from [Oracle](https://www.oracle.com/java/technologies/downloads/) or [OpenJDK](https://adoptium.net/).
-
-2. **Clone and Install Dependencies**
-   ```bash
-   git clone <repository-url>
-   cd <project-folder>
-   npm install
-   ```
-
-3. **Run Backend with Local Profile**
-   
-   The application uses **H2 in-memory database** when running locally (no database setup needed).
-   
-   **Option 1: Using npm script (recommended)**
-   ```bash
-   npm run dev
-   ```
-   This starts both frontend (port 5000) and backend (port 8080) with the `local` profile automatically.
-
-   **Option 2: Manual backend startup**
-   ```bash
-   cd server-java
-   mvn spring-boot:run -Dspring-boot.run.profiles=local
-   ```
-   Then in a separate terminal:
-   ```bash
-   npm run dev:frontend
-   ```
-
-4. **Access the Application**
-   - Frontend: http://localhost:5000
-   - Backend API: http://localhost:8080/api
-   - H2 Console (database viewer): http://localhost:8080/h2-console
-     - JDBC URL: `jdbc:h2:mem:taskflowdb`
-     - Username: `sa`
-     - Password: (leave empty)
-
-### Important Notes
-
-- **Data Persistence**: H2 runs in-memory, so all data is lost when you stop the server
-- **Profile Selection**: The application auto-detects your environment:
-  - If `DATABASE_URL` exists → uses PostgreSQL (Replit profile)
-  - If `DATABASE_URL` is absent → uses H2 (local profile)
-- **Windows Compatibility**: npm scripts use `cross-env` for environment variables
-- **Lombok**: Version 1.18.36+ is required for Java 21 compatibility
-
-### Troubleshooting
-
-**Problem: `TypeTag :: UNKNOWN` error**
-- **Cause**: Lombok version incompatible with Java 21+
-- **Solution**: Already fixed in pom.xml (Lombok 1.18.36 with maven-compiler-plugin 3.13.0)
-
-**Problem: `DATABASE_URL environment variable not set`**
-- **Cause**: Application trying to use Replit profile locally
-- **Solution**: Run with explicit local profile: `mvn spring-boot:run -Dspring-boot.run.profiles=local`
-
-**Problem: Port 8080 already in use**
-- **Solution**: Stop any running Java processes or change the port in `application.yml`
-
-**Problem: MUI x-date-pickers version conflicts**
-- **Cause**: @mui/x-date-pickers v7/v8 has compatibility issues with current MUI v7 and date-fns setup
-- **Solution**: Replaced with react-day-picker (TaskCalendar) and native HTML5 date input (CreateTaskDialog)
