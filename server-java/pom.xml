@@ -73,6 +73,15 @@
     </dependencies>
     
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>../dist/public</directory>
+                <targetPath>static</targetPath>
+            </resource>
+        </resources>
         <plugins>
             <!-- Maven Compiler Plugin with Lombok support for Java 21 -->
             <plugin>

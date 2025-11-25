@@ -19,7 +19,7 @@ logging:
     org.hibernate: WARN
 
 ---
-# Replit Profile - PostgreSQL via DATABASE_URL environment variable
+# Replit Development Profile - PostgreSQL via DATABASE_URL environment variable
 spring:
   config:
     activate:
@@ -35,6 +35,27 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+---
+# Production Profile - PostgreSQL + port 5000 for Replit deployment
+spring:
+  config:
+    activate:
+      on-profile: production
+  
+  datasource:
+    url: ${DATABASE_URL}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+server:
+  port: 5000
 
 ---
 # Local Profile - H2 In-Memory Database
