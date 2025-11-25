@@ -47,7 +47,8 @@ Preferred communication style: Simple, everyday language.
 - Theme configuration in `client/src/theme.ts` (light/dark MUI themes)
 - Path aliases configured for clean imports (@/, @shared/, @assets/)
 - Responsive sidebar using MUI Drawer (permanent on desktop md+, temporary on mobile)
-- TaskCalendar uses MUI DateCalendar with date-fns for date operations
+- TaskCalendar uses react-day-picker with custom MUI styling for date selection
+- CreateTaskDialog uses native HTML5 date input (type="date") for due date selection
 
 ### Backend Architecture
 
@@ -165,10 +166,10 @@ Preferred communication style: Simple, everyday language.
 - **Material-UI (MUI)**: React component library implementing Material Design
   - `@mui/material`: Core UI components (Button, Card, Dialog, TextField, etc.)
   - `@mui/icons-material`: Material Design icon components
-  - `@mui/x-date-pickers`: Date and time picker components (DateCalendar, PickersDay, LocalizationProvider)
   - `@emotion/react` & `@emotion/styled`: CSS-in-JS styling (MUI dependency)
+- **react-day-picker**: Flexible date picker component for calendar views
 - **Lucide React**: Icon library for custom icons (used alongside MUI icons)
-- **date-fns**: Date manipulation and formatting utility (used with MUI DatePickers)
+- **date-fns**: Date manipulation and formatting utility (used with react-day-picker)
 
 ### Form Handling
 - **React Hook Form**: Form state management and validation
@@ -265,6 +266,6 @@ Preferred communication style: Simple, everyday language.
 **Problem: Port 8080 already in use**
 - **Solution**: Stop any running Java processes or change the port in `application.yml`
 
-**Problem: MUI date picker errors**
-- **Cause**: Version mismatch between @mui/material and @mui/x-date-pickers
-- **Solution**: Already fixed - using @mui/x-date-pickers v7 to match MUI v7
+**Problem: MUI x-date-pickers version conflicts**
+- **Cause**: @mui/x-date-pickers v7/v8 has compatibility issues with current MUI v7 and date-fns setup
+- **Solution**: Replaced with react-day-picker (TaskCalendar) and native HTML5 date input (CreateTaskDialog)

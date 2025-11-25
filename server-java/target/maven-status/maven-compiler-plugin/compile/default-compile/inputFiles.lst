@@ -1,5 +1,6 @@
 /home/runner/workspace/server-java/src/main/java/com/taskflow/TaskFlowApplication.java
 /home/runner/workspace/server-java/src/main/java/com/taskflow/config/CorsConfig.java
+/home/runner/workspace/server-java/src/main/java/com/taskflow/config/DatabaseConfig.java
 /home/runner/workspace/server-java/src/main/java/com/taskflow/controller/ProjectController.java
 /home/runner/workspace/server-java/src/main/java/com/taskflow/controller/TaskController.java
 /home/runner/workspace/server-java/src/main/java/com/taskflow/dto/CreateProjectRequest.java

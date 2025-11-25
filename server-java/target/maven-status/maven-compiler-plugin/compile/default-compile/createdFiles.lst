@@ -14,3 +14,4 @@ com/taskflow/dto/CreateProjectRequest.class
 com/taskflow/repository/ProjectRepository.class
 com/taskflow/TaskFlowApplication.class
 com/taskflow/dto/CreateTaskRequest.class
+com/taskflow/config/DatabaseConfig.class
