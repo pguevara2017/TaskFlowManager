@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { ProjectCard } from '@/components/ProjectCard';
-import { Button, TextField, Skeleton, Card, CardContent, Box, InputAdornment } from '@mui/material';
-import { Plus, Search } from 'lucide-react';
+import { CreateProjectDialog } from '@/components/CreateProjectDialog';
+import { TextField, Skeleton, Card, CardContent, Box, InputAdornment } from '@mui/material';
+import { Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchProjects, fetchProjectStatsBulk } from '@/lib/api';
 
@@ -66,13 +67,7 @@ export default function Projects() {
             Manage and track all your projects
           </Box>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<Plus size={16} />}
-          data-testid="button-create-project"
-        >
-          Create Project
-        </Button>
+        <CreateProjectDialog />
       </Box>
 
       <TextField
