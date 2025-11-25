@@ -114,6 +114,7 @@ Preferred communication style: Simple, everyday language.
 - Node.js orchestrator (`server/index.ts`) manages both processes:
   - Starts Spring Boot backend (`mvn spring-boot:run`)
   - Starts Vite frontend dev server
+  - **Configures Vite proxy to forward `/api` requests to Spring Boot on port 8080**
   - Provides unified development workflow
 - Source maps for frontend debugging
 - SLF4J logging for backend debugging
