@@ -122,8 +122,20 @@ Preferred communication style: Simple, everyday language.
 **Production Build:**
 - Frontend: Vite builds client to `dist/public`
 - Backend: Maven packages Spring Boot executable JAR
-- Spring Boot serves static frontend assets from classpath
+- Spring Boot serves static frontend assets from `dist/public/`
 - Single deployable JAR contains both frontend and backend
+
+**Production Deployment (Replit):**
+- `NODE_ENV=production` triggers production mode in `server/index.ts`
+- Production mode:
+  1. Builds frontend (if not already built)
+  2. Starts Spring Boot on port 5000 with `production` profile
+  3. Spring Boot serves both API (`/api/*`) and static files
+- Key configuration:
+  - `SpaController.java`: Forwards non-API routes to `index.html` for SPA routing
+  - `WebConfig.java`: Configures static resource handlers for production profile
+  - `application.yml`: Production profile runs on port 5000, serves static files from `../dist/public/`
+- Frontend API calls use relative URLs (empty `VITE_API_BASE_URL`) in production
 
 **Maven Configuration (pom.xml):**
 - Spring Boot 3.2.0 with Java 21

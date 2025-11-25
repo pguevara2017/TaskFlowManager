@@ -4,6 +4,7 @@ com/taskflow/dto/ProjectStatsResponse.class
 com/taskflow/controller/TaskController.class
 com/taskflow/model/Project.class
 com/taskflow/dto/UpdateTaskRequest.class
+com/taskflow/controller/SpaController.class
 com/taskflow/service/NotificationService.class
 com/taskflow/dto/TasksResponse.class
 com/taskflow/controller/ProjectController.class
@@ -15,3 +16,4 @@ com/taskflow/repository/ProjectRepository.class
 com/taskflow/TaskFlowApplication.class
 com/taskflow/dto/CreateTaskRequest.class
 com/taskflow/config/DatabaseConfig.class
+com/taskflow/config/WebConfig.class

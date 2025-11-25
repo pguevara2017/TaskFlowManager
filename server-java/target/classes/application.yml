@@ -35,6 +35,35 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  
+  web:
+    resources:
+      static-locations: file:../dist/public/
+
+---
+# Production Profile - Serves static frontend on port 5000
+spring:
+  config:
+    activate:
+      on-profile: production
+  
+  datasource:
+    url: ${DATABASE_URL}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  
+  web:
+    resources:
+      static-locations: file:../dist/public/
+
+server:
+  port: 5000
 
 ---
 # Local Profile - H2 In-Memory Database
