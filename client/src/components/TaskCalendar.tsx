@@ -30,7 +30,7 @@ interface TaskCalendarProps {
 }
 
 function ServerDay(
-  props: PickersDayProps & { hasTasksOnDate?: boolean }
+  props: PickersDayProps<Date> & { hasTasksOnDate?: boolean }
 ) {
   const { hasTasksOnDate, day, ...other } = props;
 

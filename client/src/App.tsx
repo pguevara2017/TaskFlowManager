@@ -10,6 +10,8 @@ import {
   Toolbar,
   useMediaQuery,
 } from '@mui/material';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { Menu as MenuIcon } from 'lucide-react';
 import { lightTheme, darkTheme } from './theme';
 import { AppSidebar } from '@/components/app-sidebar';
@@ -65,8 +67,9 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <QueryClientProvider client={queryClient}>
-        <Box sx={{ display: 'flex', height: '100vh' }}>
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
+        <QueryClientProvider client={queryClient}>
+          <Box sx={{ display: 'flex', height: '100vh' }}>
           <AppSidebar
             open={sidebarOpen}
             onClose={() => setSidebarOpen(false)}
@@ -116,7 +119,8 @@ export default function App() {
             </Box>
           </Box>
         </Box>
-      </QueryClientProvider>
+        </QueryClientProvider>
+      </LocalizationProvider>
     </ThemeProvider>
   );
 }
