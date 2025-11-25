@@ -11,7 +11,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 @Configuration
-@Profile("replit")
+@Profile({"replit", "production"})
 public class DatabaseConfig {
     
     @Bean
@@ -51,11 +51,23 @@ public class DatabaseConfig {
                 query != null ? "?" + query : ""
             );
             
+            // Check if production profile - use smaller pool for faster startup
+            String activeProfiles = System.getProperty("spring.profiles.active", "");
+            boolean isProduction = activeProfiles.contains("production");
+            
             HikariConfig config = new HikariConfig();
             config.setJdbcUrl(jdbcUrl);
             config.setUsername(username);
             config.setPassword(password);
-            config.setMaximumPoolSize(10);
+            
+            if (isProduction) {
+                // Smaller pool for faster production startup
+                config.setMinimumIdle(1);
+                config.setMaximumPoolSize(5);
+                config.setConnectionTimeout(10000); // 10 seconds
+            } else {
+                config.setMaximumPoolSize(10);
+            }
             
             return new HikariDataSource(config);
         } catch (URISyntaxException e) {

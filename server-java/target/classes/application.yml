@@ -43,13 +43,9 @@ spring:
     activate:
       on-profile: production
   
-  datasource:
-    url: ${DATABASE_URL}
-    driver-class-name: org.postgresql.Driver
-  
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -59,7 +55,7 @@ spring:
       static-locations: file:../dist/public/
 
 server:
-  port: 5000
+  port: ${PORT:5000}
 
 ---
 # Local Profile - H2 In-Memory Database
