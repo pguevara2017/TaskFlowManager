@@ -7,10 +7,10 @@ import {
   Box,
   Paper,
 } from '@mui/material';
-import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DateCalendar } from '@mui/x-date-pickers';
+import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { PickersDay, PickersDayProps } from '@mui/x-date-pickers/PickersDay';
+import { PickersDay, PickersDayProps } from '@mui/x-date-pickers';
 import { format, isSameDay } from 'date-fns';
 import { PriorityBadge } from './PriorityBadge';
 import { useTheme } from '@mui/material/styles';
@@ -30,7 +30,7 @@ interface TaskCalendarProps {
 }
 
 function ServerDay(
-  props: PickersDayProps & { hasTasksOnDate?: boolean }
+  props: PickersDayProps<Date> & { hasTasksOnDate?: boolean }
 ) {
   const { hasTasksOnDate, day, ...other } = props;
 
@@ -89,12 +89,12 @@ export function TaskCalendar({ tasks, onTaskClick }: TaskCalendarProps) {
             <LocalizationProvider dateAdapter={AdapterDateFns}>
               <DateCalendar
                 value={selectedDate}
-                onChange={(newValue) => setSelectedDate(newValue)}
+                onChange={(newValue: Date | null) => setSelectedDate(newValue)}
                 slots={{
                   day: ServerDay,
                 }}
                 slotProps={{
-                  day: (ownerState) =>
+                  day: (ownerState: any) =>
                     ({
                       hasTasksOnDate: hasTasksOnDate(ownerState.day),
                     } as any),

@@ -191,3 +191,80 @@ Preferred communication style: Simple, everyday language.
 - **Orchestrator**: Node.js script manages both Spring Boot and Vite processes
 - **Background Processing**: Java ExecutorService with fixed thread pool (4 workers)
 - **Database Pooling**: HikariCP for connection management
+
+## Running Locally on Windows
+
+### Prerequisites
+- **Java 21** (Oracle JDK or OpenJDK)
+- **Maven 3.8+**
+- **Node.js 18+** with npm
+- **Git** (to clone the repository)
+
+### Setup Instructions
+
+1. **Verify Java Version**
+   ```bash
+   java -version
+   ```
+   Should show Java 21. If not, download from [Oracle](https://www.oracle.com/java/technologies/downloads/) or [OpenJDK](https://adoptium.net/).
+
+2. **Clone and Install Dependencies**
+   ```bash
+   git clone <repository-url>
+   cd <project-folder>
+   npm install
+   ```
+
+3. **Run Backend with Local Profile**
+   
+   The application uses **H2 in-memory database** when running locally (no database setup needed).
+   
+   **Option 1: Using npm script (recommended)**
+   ```bash
+   npm run dev
+   ```
+   This starts both frontend (port 5000) and backend (port 8080) with the `local` profile automatically.
+
+   **Option 2: Manual backend startup**
+   ```bash
+   cd server-java
+   mvn spring-boot:run -Dspring-boot.run.profiles=local
+   ```
+   Then in a separate terminal:
+   ```bash
+   npm run dev:frontend
+   ```
+
+4. **Access the Application**
+   - Frontend: http://localhost:5000
+   - Backend API: http://localhost:8080/api
+   - H2 Console (database viewer): http://localhost:8080/h2-console
+     - JDBC URL: `jdbc:h2:mem:taskflowdb`
+     - Username: `sa`
+     - Password: (leave empty)
+
+### Important Notes
+
+- **Data Persistence**: H2 runs in-memory, so all data is lost when you stop the server
+- **Profile Selection**: The application auto-detects your environment:
+  - If `DATABASE_URL` exists → uses PostgreSQL (Replit profile)
+  - If `DATABASE_URL` is absent → uses H2 (local profile)
+- **Windows Compatibility**: npm scripts use `cross-env` for environment variables
+- **Lombok**: Version 1.18.36+ is required for Java 21 compatibility
+
+### Troubleshooting
+
+**Problem: `TypeTag :: UNKNOWN` error**
+- **Cause**: Lombok version incompatible with Java 21+
+- **Solution**: Already fixed in pom.xml (Lombok 1.18.36 with maven-compiler-plugin 3.13.0)
+
+**Problem: `DATABASE_URL environment variable not set`**
+- **Cause**: Application trying to use Replit profile locally
+- **Solution**: Run with explicit local profile: `mvn spring-boot:run -Dspring-boot.run.profiles=local`
+
+**Problem: Port 8080 already in use**
+- **Solution**: Stop any running Java processes or change the port in `application.yml`
+
+**Problem: MUI date picker errors**
+- **Cause**: Version mismatch between @mui/material and @mui/x-date-pickers
+- **Solution**: Already fixed - using @mui/x-date-pickers v7 to match MUI v7
