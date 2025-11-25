@@ -2,6 +2,7 @@
 /home/runner/workspace/server-java/src/main/java/com/taskflow/config/CorsConfig.java
 /home/runner/workspace/server-java/src/main/java/com/taskflow/config/DatabaseConfig.java
 /home/runner/workspace/server-java/src/main/java/com/taskflow/config/WebConfig.java
+/home/runner/workspace/server-java/src/main/java/com/taskflow/controller/HealthController.java
 /home/runner/workspace/server-java/src/main/java/com/taskflow/controller/ProjectController.java
 /home/runner/workspace/server-java/src/main/java/com/taskflow/controller/SpaController.java
 /home/runner/workspace/server-java/src/main/java/com/taskflow/controller/TaskController.java

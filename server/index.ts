@@ -12,6 +12,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 if (isProduction) {
   console.log('🏭 Starting TaskFlow in PRODUCTION mode...\n');
   
+  // Build frontend if not already built
   const distPath = join(projectRoot, 'dist', 'public', 'index.html');
   if (!existsSync(distPath)) {
     console.log('📦 Building frontend...');
@@ -24,13 +25,37 @@ if (isProduction) {
     }
   }
   
+  // Build Spring Boot JAR if not already built
+  const jarPath = join(projectRoot, 'server-java', 'target', 'taskflow-api-1.0.0.jar');
+  if (!existsSync(jarPath)) {
+    console.log('📦 Building Spring Boot JAR...');
+    try {
+      execSync('mvn clean package -DskipTests', { 
+        cwd: join(projectRoot, 'server-java'), 
+        stdio: 'inherit' 
+      });
+      console.log('✅ Spring Boot JAR build complete!\n');
+    } catch (error) {
+      console.error('❌ Spring Boot build failed:', error);
+      process.exit(1);
+    }
+  }
+  
   console.log('🚀 Starting Spring Boot on port 5000...\n');
   
-  const springBoot = spawn('mvn', ['spring-boot:run', '-Dspring-boot.run.profiles=production'], {
+  // Run with java -jar for faster startup, set PORT=5000
+  const springBoot = spawn('java', [
+    '-jar',
+    'target/taskflow-api-1.0.0.jar',
+    '--spring.profiles.active=production'
+  ], {
     cwd: join(projectRoot, 'server-java'),
     stdio: 'inherit',
     shell: true,
-    env: { ...process.env }
+    env: { 
+      ...process.env,
+      PORT: '5000'
+    }
   });
   
   springBoot.on('error', (err) => {

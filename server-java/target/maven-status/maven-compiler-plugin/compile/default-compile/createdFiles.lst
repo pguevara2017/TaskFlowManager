@@ -2,12 +2,13 @@ com/taskflow/config/CorsConfig.class
 com/taskflow/model/Task.class
 com/taskflow/dto/ProjectStatsResponse.class
 com/taskflow/controller/TaskController.class
+com/taskflow/controller/SpaController.class
 com/taskflow/model/Project.class
 com/taskflow/dto/UpdateTaskRequest.class
-com/taskflow/controller/SpaController.class
+com/taskflow/controller/HealthController.class
+com/taskflow/controller/ProjectController.class
 com/taskflow/service/NotificationService.class
 com/taskflow/dto/TasksResponse.class
-com/taskflow/controller/ProjectController.class
 com/taskflow/repository/TaskRepository.class
 com/taskflow/service/ProjectService.class
 com/taskflow/service/TaskService.class
